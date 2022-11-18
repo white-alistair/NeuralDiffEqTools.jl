@@ -1,6 +1,6 @@
 module NeuralDiffEqTools
 
-export TimeSeries, Data, get_mlp, train!, evaluate
+export TimeSeries, Data, get_prob, get_mlp, train!, evaluate
 
 using OrdinaryDiffEq,
     Flux,
@@ -16,6 +16,7 @@ using OrdinaryDiffEq,
     CairoMakie
 
 include("data.jl")
+include("prob.jl")
 include("neural_nets.jl")
 include("optimisers.jl")
 include("callbacks.jl")
