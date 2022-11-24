@@ -1,6 +1,6 @@
 module NeuralDiffEqTools
 
-export TimeSeries, Data, get_prob, get_mlp, train!, evaluate, get_default_settings
+export TimeSeries, Data, get_prob, get_mlp, train!, evaluate, get_default_settings, write_results
 
 using OrdinaryDiffEq,
     Flux,
