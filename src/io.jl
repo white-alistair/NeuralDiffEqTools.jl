@@ -20,7 +20,7 @@ function write_results(filename; kwargs...)
     end
 
     # Write the data to the file.
-    sleep(300 * rand())  # Hack to avoid concurrent writes
+    sleep(60 * rand())  # Hack to avoid concurrent writes
     open(filename, "a") do io
         writedlm(io, [formatted_cols], ',')
     end
