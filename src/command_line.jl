@@ -19,7 +19,7 @@ function ArgParse.parse_item(::Type{Vector{T}}, arg_string::AbstractString) wher
     return [parse(T, item) for item in split(arg_string, ',')]
 end
 
-function parse_command_line()
+function get_default_settings()
     settings = ArgParseSettings(autofix_names = true)
 
     @add_arg_table settings begin
@@ -108,5 +108,10 @@ function parse_command_line()
             default = "learning_curves"
     end
 
+    return settings
+end
+
+function parse_command_line()
+    settings = get_default_settings()
     return parse_args(settings)
 end

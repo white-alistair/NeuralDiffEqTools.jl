@@ -1,6 +1,6 @@
 module NeuralDiffEqTools
 
-export TimeSeries, Data, get_prob, get_mlp, train!, evaluate
+export TimeSeries, Data, get_prob, get_mlp, train!, evaluate, get_default_settings
 
 using OrdinaryDiffEq,
     Flux,
@@ -26,5 +26,6 @@ include("evaluate.jl")
 include("train.jl")
 include("io.jl")
 include("learning_curves.jl")
+include("command_line.jl")
 
 end
