@@ -13,7 +13,10 @@ using OrdinaryDiffEq,
     Random,
     DelimitedFiles,
     JLD2,
-    CairoMakie
+    CairoMakie,
+    Reexport
+
+@reexport using OrdinaryDiffEq: ODEProblem
 
 include("data.jl")
 include("prob.jl")
