@@ -99,7 +99,8 @@ function get_default_settings()
         "--show-plot"
             action = :store_true
         "--results-file"
-            required = true
+            arg_type = String
+            default = "results.csv"
         "--model-dir"
             arg_type = String
             default = "models"
