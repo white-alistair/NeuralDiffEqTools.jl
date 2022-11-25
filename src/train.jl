@@ -22,7 +22,7 @@ function train!(
     prolong_training = false,
     initial_gc_interval = 0,
     # I/O args
-    callback = NeuralDiffEqTools.cb_display,
+    callback = display_progress,
     verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat}
@@ -83,8 +83,8 @@ function train!(
 
                 !isnothing(callback) && callback(
                     epoch,
-                    steps_to_predict,
                     iter,
+                    steps_to_predict,
                     tspan,
                     training_loss,
                     target_trajectory,
