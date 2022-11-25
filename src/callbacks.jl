@@ -1,6 +1,6 @@
 function cb_display(epoch, steps, iter, tspan, loss, ground_truth, prediction, times; verbose, show_plot)
     if verbose
-        @info @sprintf "[epoch = %04i] [steps = %02i] [iter = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch steps iter tspan[1] tspan[2] loss
+        @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch steps iter tspan[1] tspan[2] loss
     end
     if show_plot
         plot_prediction(ground_truth, prediction, times)
