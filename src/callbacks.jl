@@ -1,8 +1,9 @@
 function display_progress(epoch, iter, steps, tspan, loss, ground_truth, prediction, times; verbose, show_plot)
     if verbose
-        @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch steps iter tspan[1] tspan[2] loss
+        @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter steps tspan[1] tspan[2] loss
     end
     if show_plot
+        # This will slow down training by about 10x
         plot_prediction(ground_truth, prediction, times)
     end
     return false
