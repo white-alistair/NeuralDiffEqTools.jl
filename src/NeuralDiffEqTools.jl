@@ -3,14 +3,13 @@ module NeuralDiffEqTools
 export TimeSeries, Data, get_prob, get_mlp, train!, evaluate, write_results, save_learning_curve, get_common_settings
 
 using OrdinaryDiffEq,
+    DiffEqSensitivity,
     Flux,
     Zygote,
-    DiffEqSensitivity,
-    Plots,
-    Printf,
     ArgParse,
     Statistics,
     Random,
+    Printf,
     DelimitedFiles,
     JLD2,
     CairoMakie
