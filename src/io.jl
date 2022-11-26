@@ -1,4 +1,4 @@
-function write_results(filename; kwargs...)
+function save_results(filename; kwargs...)
     # If the file doesn't exist already, create it and add the header row.
     if !isfile(filename)
         col_names = [keys(kwargs)]
