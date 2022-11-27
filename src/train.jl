@@ -3,12 +3,12 @@ function train!(
     θ,
     data::Data{T};
     # Solver args
-    solver = Tsit5(),
+    solver::OrdinaryDiffEqAlgorithm = Tsit5(),
     reltol::T = 1f-6,
     abstol::T = 1f-6,
     maxiters = 10_000,
     # Optimiser args
-    optimiser = :ADAM,
+    opt_type::Type{O} = Adam,
     learning_rate::T = 1f-2,
     min_learning_rate::T = 1f-2,
     decay_rate::T = 1f0,
@@ -25,7 +25,7 @@ function train!(
     callback = display_progress,
     verbose = false,
     show_plot = false,
-) where {T<:AbstractFloat}
+) where {T<:AbstractFloat, O<:Flux.Optimise.AbstractOptimiser}
     @info "Beginning training..."
 
     (; train_data, val_data, test_data) = data
@@ -33,11 +33,8 @@ function train!(
     # Set up the loss function
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
-    # Set up the optimiser
-    if optimiser == :ADAM
-        optimiser = ADAM(learning_rate)
-    end
-    opt = ExpDecayOptimiser(optimiser, min_learning_rate, decay_rate)
+    # Set up the scheduled optimiser
+    optimiser = ExpDecayOptimiser(opt_type(learning_rate), min_learning_rate, decay_rate)
 
     # Keep track of the minimum validation loss for early stopping
     θ_min = copy(θ)
@@ -62,7 +59,7 @@ function train!(
             epoch += 1
             training_losses = Float32[]
 
-            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict opt.flux_opt.eta
+            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict optimiser.flux_opt.eta
 
             iter = 0
             epoch_start_time = time()
@@ -95,7 +92,7 @@ function train!(
                 )
 
                 push!(training_losses, training_loss)
-                Flux.update!(opt.flux_opt, θ, gradients[θ])
+                Flux.update!(optimiser.flux_opt, θ, gradients[θ])
 
                 # Call the garbace collector manually to avoid OOM errors on the cluster
                 (gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
@@ -119,7 +116,7 @@ function train!(
             @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epoch steps_to_predict val_valid_time
             @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epoch steps_to_predict epoch_duration
 
-            push!(learning_curve, [epoch, steps_to_predict, opt.flux_opt.eta, mean(training_losses), val_loss, epoch_duration])
+            push!(learning_curve, [epoch, steps_to_predict, optimiser.flux_opt.eta, mean(training_losses), val_loss, epoch_duration])
 
             early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
 
@@ -130,7 +127,7 @@ function train!(
                 min_val_valid_time = val_valid_time
             end
 
-            isa(opt, ScheduledOptimiser) && update_learning_rate!(opt)
+            isa(optimiser, ScheduledOptimiser) && update_learning_rate!(optimiser)
 
             if (time() - training_start_time) > time_limit
                 @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (time_limit / 3600)
