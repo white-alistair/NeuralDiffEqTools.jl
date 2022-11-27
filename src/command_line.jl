@@ -2,17 +2,16 @@ function eval_string(s)
     return eval(Meta.parse(s))
 end
 
-function init(object_name)
-    init_expr = object_name * "()"
-    return eval_string(init_expr)
+function ArgParse.parse_item(::Type{Function}, type_name::AbstractString)
+    return eval_string(type_name)
 end
 
-function ArgParse.parse_item(::Type{Function}, function_name::AbstractString)
-    return eval_string(function_name)
+function ArgParse.parse_item(::Type{DataType}, type_name::AbstractString)
+    return eval_string(type_name)
 end
 
 function ArgParse.parse_item(::Type{OrdinaryDiffEqAlgorithm}, solver_name::AbstractString)
-    return init(solver_name)
+    return eval_string(solver_name * "()")
 end
 
 function ArgParse.parse_item(::Type{Vector{T}}, arg_string::AbstractString) where {T}
@@ -50,8 +49,8 @@ function get_common_settings()
             arg_type = Float32
             default = 0f0
         "--optimiser", "--opt"
-            arg_type = Symbol
-            default = :ADAM
+            arg_type = DataType
+            default = Adam
         "--learning-rate", "--lr"
             arg_type = Float32
             default = 1f-2
@@ -91,7 +90,7 @@ function get_common_settings()
             default = Tsit5()
         "--maxiters"
             arg_type = Int
-            default = 10000
+            default = 10_000
 
         # I/0
         "--verbose"
