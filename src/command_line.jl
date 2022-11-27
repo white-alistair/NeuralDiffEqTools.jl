@@ -19,9 +19,9 @@ function ArgParse.parse_item(::Type{Vector{T}}, arg_string::AbstractString) wher
 end
 
 function get_common_settings()
-    settings = ArgParseSettings(autofix_names = true)
+    common_settings = ArgParseSettings(autofix_names = true)
 
-    @add_arg_table settings begin
+    @add_arg_table common_settings begin
         # Experiment args
         "--job-id"
             arg_type = String
@@ -108,10 +108,10 @@ function get_common_settings()
             default = "learning_curves"
     end
 
-    return settings
+    return common_settings
 end
 
 function parse_command_line()
-    settings = get_common_settings()
-    return parse_args(settings)
+    common_settings = get_common_settings()
+    return parse_args(common_settings)
 end
