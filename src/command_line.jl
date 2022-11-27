@@ -48,7 +48,7 @@ function get_common_settings()
         "--regularisation-param", "--reg-param"
             arg_type = Float32
             default = 0f0
-        "--opt-type", "--opt"
+        "--optimiser-type", "--opt"
             arg_type = DataType
             default = Adam
         "--learning-rate", "--lr"

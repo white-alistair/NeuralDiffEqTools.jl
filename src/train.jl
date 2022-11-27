@@ -8,7 +8,7 @@ function train!(
     abstol::T = 1f-6,
     maxiters = 10_000,
     # Optimiser args
-    opt_type::Type{O} = Adam,
+    optimiser_type::Type{O} = Adam,
     learning_rate::T = 1f-2,
     min_learning_rate::T = 1f-2,
     decay_rate::T = 1f0,
@@ -34,7 +34,7 @@ function train!(
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
     # Set up the scheduled optimiser
-    optimiser = ExpDecayOptimiser(opt_type(learning_rate), min_learning_rate, decay_rate)
+    optimiser = ExpDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
 
     # Keep track of the minimum validation loss for early stopping
     θ_min = copy(θ)
