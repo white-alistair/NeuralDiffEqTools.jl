@@ -30,26 +30,27 @@ function train!(
     @info "Beginning training..."
 
     (; train_data, val_data, test_data) = data
-
-    # Set up the loss function
+    
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
     # Set up the scheduled optimiser
     optimiser =
         ExpDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
 
-    # Keep track of the minimum validation loss for early stopping
+    # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)
     min_val_loss = Inf32
     min_val_epoch = 0
     min_val_valid_time = NaN32
+    early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
+    
+    # Keep track of training loss, validation loss, and duration per epoch
     learning_curve = Array{Array{Float32}}(undef, 0)
 
     epoch = 0
     training_start_time = time()
     for steps_to_predict in training_steps
         data_loader = DataLoader(train_data, steps_to_predict)
-        early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = Inf32)
         gc_interval = max(initial_gc_interval ÷ steps_to_predict, 1)
 
         if prolong_training && (steps_to_predict == training_steps[end])
