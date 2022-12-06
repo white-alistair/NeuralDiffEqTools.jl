@@ -10,8 +10,8 @@ function train!(
     sensealg::Union{DiffEqSensitivity.AbstractAdjointSensitivityAlgorithm,Nothing} = nothing,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
-    learning_rate::T = 1.0f-2,
-    min_learning_rate::T = 1.0f-2,
+    learning_rate::T = 1.0f-3,
+    min_learning_rate::T = 1.0f-3,
     decay_rate::T = 1.0f0,
     # Training args
     training_steps::AbstractVector = [1],
@@ -30,7 +30,7 @@ function train!(
     @info "Beginning training..."
 
     (; train_data, val_data, test_data) = data
-    
+
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
     # Set up the scheduled optimiser
