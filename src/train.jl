@@ -7,7 +7,7 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
-    sensealg::Union{DiffEqSensitivity.AbstractAdjointSensitivityAlgorithm, Nothing} = nothing,
+    sensealg::Union{DiffEqSensitivity.AbstractAdjointSensitivityAlgorithm,Nothing} = nothing,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
     learning_rate::T = 1.0f-2,
@@ -121,10 +121,12 @@ function train!(
                 show_plot,
             )
 
+            #! format: off
             @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epoch steps_to_predict mean(training_losses)
             @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epoch steps_to_predict val_loss
             @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epoch steps_to_predict val_valid_time
             @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epoch steps_to_predict epoch_duration
+            #! format: on
 
             push!(
                 learning_curve,
@@ -150,10 +152,10 @@ function train!(
             isa(optimiser, ScheduledOptimiser) && update_learning_rate!(optimiser)
 
             if (time() - training_start_time) > time_limit
-                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (
-                    time_limit / 3600
-                )
+                #! format: off
+                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (time_limit / 3600)
                 @goto complete_training  # Use goto and label to break out of nested loops
+                #! format: on
             end
 
             flush(stderr)  # Keep log files up to date on the cluster
