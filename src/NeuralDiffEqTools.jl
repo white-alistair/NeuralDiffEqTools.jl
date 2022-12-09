@@ -4,6 +4,7 @@ export TimeSeries, Data, get_prob, get_mlp, train!, evaluate, save_results, save
 
 using OrdinaryDiffEq,
     DiffEqSensitivity,
+    SciMLBase,
     Flux,
     Zygote,
     ArgParse,

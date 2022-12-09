@@ -7,7 +7,6 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
-    sensealg::Union{DiffEqSensitivity.AbstractAdjointSensitivityAlgorithm,Nothing} = nothing,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
     learning_rate::T = 1.0f-3,
@@ -83,7 +82,7 @@ function train!(
                         reltol,
                         abstol,
                         maxiters,
-                        sensealg,
+                        sensealg = BacksolveAdjoint(autojacvec = ReverseDiffVJP(true)),
                     )
                     training_loss = loss(predicted_trajectory, target_trajectory, θ)
                     return training_loss

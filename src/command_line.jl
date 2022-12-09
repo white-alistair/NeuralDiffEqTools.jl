@@ -91,8 +91,6 @@ function get_common_settings()
         "--maxiters"
             arg_type = Int
             default = 10_000
-        "--sensealg"
-            arg_type = String
 
         # I/0
         "--verbose"
