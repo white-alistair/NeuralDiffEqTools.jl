@@ -91,6 +91,12 @@ function get_common_settings()
         "--maxiters"
             arg_type = Int
             default = 10_000
+        "--sensealg"
+            arg_type = Union{Symbol,Nothing}
+            default = nothing
+        "--autojacvec"
+            arg_type = Union{Symbol,Nothing}
+            default = nothing
 
         # I/0
         "--verbose"

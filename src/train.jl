@@ -7,6 +7,8 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
+    sensealg_type::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = nothing,
+    vjp_type::SciMLSensitivity.VJPChoice = nothing,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
     learning_rate::T = 1.0f-3,
@@ -35,6 +37,9 @@ function train!(
     # Set up the scheduled optimiser
     optimiser =
         ExpDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
+
+    # Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
+    sensealg = get_sensealg(sensealg_type, vjp_type)
 
     # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)
@@ -82,7 +87,7 @@ function train!(
                         reltol,
                         abstol,
                         maxiters,
-                        sensealg = BacksolveAdjoint(autojacvec = ReverseDiffVJP(true)),
+                        sensealg,
                     )
                     training_loss = loss(predicted_trajectory, target_trajectory, θ)
                     return training_loss
