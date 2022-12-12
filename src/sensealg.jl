@@ -16,6 +16,6 @@ function get_sensealg(sensealg_type, vjp_type)
     elseif sensealg_type == :InterpolatingAdjoint
         return InterpolatingAdjoint(; autojacvec)
     elseif sensealg_type == :QuadratureAdjoint
-        return QuadratureAdjoint(; autojacvec)
+        return QuadratureAdjoint(; autojacvec)  # Doesn't work with ZygoteVJP
     end
 end
