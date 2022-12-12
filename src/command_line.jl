@@ -91,10 +91,10 @@ function get_common_settings()
         "--maxiters"
             arg_type = Int
             default = 10_000
-        "--sensealg"
+        "--sensealg-type", "--sensealg"
             arg_type = Symbol
             default = nothing
-        "--autojacvec"
+        "--autojacvec-type", "--autojacvec"
             arg_type = Symbol
             default = nothing
 
