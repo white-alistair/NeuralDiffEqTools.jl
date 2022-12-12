@@ -2,9 +2,9 @@ function eval_string(s)
     return eval(Meta.parse(s))
 end
 
-function ArgParse.parse_item(::Type{Symbol}, symbol_string::AbstractString)
-    return Symbol(symbol_string)
-end
+# function ArgParse.parse_item(::Type{Symbol}, symbol_string::AbstractString)
+#     return Symbol(symbol_string)
+# end
 
 function ArgParse.parse_item(::Type{Function}, function_name::AbstractString)
     return eval_string(function_name)
@@ -96,10 +96,10 @@ function get_common_settings()
             arg_type = Int
             default = 10_000
         "--sensealg"
-            arg_type = Union{Symbol,Nothing}
+            arg_type = Symbol
             default = nothing
         "--autojacvec"
-            arg_type = Union{Symbol,Nothing}
+            arg_type = Symbol
             default = nothing
 
         # I/0
