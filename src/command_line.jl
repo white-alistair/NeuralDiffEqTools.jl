@@ -2,8 +2,12 @@ function eval_string(s)
     return eval(Meta.parse(s))
 end
 
-function ArgParse.parse_item(::Type{Function}, type_name::AbstractString)
-    return eval_string(type_name)
+function ArgParse.parse_item(::Type{Symbol}, symbol_string::AbstractString)
+    return Symbol(symbol_string)
+end
+
+function ArgParse.parse_item(::Type{Function}, function_name::AbstractString)
+    return eval_string(function_name)
 end
 
 function ArgParse.parse_item(::Type{DataType}, type_name::AbstractString)
