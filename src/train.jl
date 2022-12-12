@@ -7,8 +7,8 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
-    sensealg_type::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = nothing,
-    vjp_type::SciMLSensitivity.VJPChoice = nothing,
+    sensealg_type::Union{Symbol,Nothing} = nothing,
+    vjp_type::Union{Symbol,Nothing} = nothing,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
     learning_rate::T = 1.0f-3,
