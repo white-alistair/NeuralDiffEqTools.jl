@@ -1,21 +1,21 @@
-function get_sensealg(sensealg_type, vjp_type)
-    if isnothing(sensealg_type)
+function get_sensealg(sensealg, vjp)
+    if isnothing(sensealg)
         return nothing
     end
 
-    if isnothing(vjp_type)
+    if isnothing(vjp)
         autojacvec = nothing
-    elseif vjp_type == :ZygoteVJP
+    elseif vjp == :ZygoteVJP
         autojacvec = ZygoteVJP()
-    elseif vjp_type == :ReverseDiffVJP
+    elseif vjp == :ReverseDiffVJP
         autojacvec = ReverseDiffVJP(true)
     end
     
-    if sensealg_type == :BacksolveAdjoint
+    if sensealg == :BacksolveAdjoint
         return BacksolveAdjoint(; autojacvec)
-    elseif sensealg_type == :InterpolatingAdjoint
+    elseif sensealg == :InterpolatingAdjoint
         return InterpolatingAdjoint(; autojacvec)
-    elseif sensealg_type == :QuadratureAdjoint
+    elseif sensealg == :QuadratureAdjoint
         return QuadratureAdjoint(; autojacvec)  # Doesn't work with ZygoteVJP
     end
 end

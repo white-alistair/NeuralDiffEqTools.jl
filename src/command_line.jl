@@ -91,10 +91,10 @@ function get_common_settings()
         "--maxiters"
             arg_type = Int
             default = 10_000
-        "--sensealg-type", "--sensealg"
+        "--sensealg"
             arg_type = Symbol
             default = :BacksolveAdjoint
-        "--autojacvec-type", "--autojacvec"
+        "--vjp"
             arg_type = Symbol
             default = :ZygoteVJP
 
