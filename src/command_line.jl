@@ -93,10 +93,10 @@ function get_common_settings()
             default = 10_000
         "--sensealg-type", "--sensealg"
             arg_type = Symbol
-            default = nothing
+            default = :BacksolveAdjoint
         "--autojacvec-type", "--autojacvec"
             arg_type = Symbol
-            default = nothing
+            default = :ZygoteVJP
 
         # I/0
         "--verbose"
