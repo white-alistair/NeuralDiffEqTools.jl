@@ -9,6 +9,7 @@ function train!(
     maxiters = 10_000,
     sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
     vjp::Union{Symbol,Nothing} = :ZygoteVJP,
+    checkpointing::Bool = false,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
     learning_rate::T = 1.0f-3,
@@ -39,7 +40,7 @@ function train!(
         ExpDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
 
     # Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
-    sensealg = get_sensealg(sensealg, vjp)
+    sensealg = get_sensealg(sensealg, vjp, checkpointing)
 
     # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)

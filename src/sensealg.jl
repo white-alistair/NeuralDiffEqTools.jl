@@ -1,4 +1,4 @@
-function get_sensealg(sensealg, vjp)
+function get_sensealg(sensealg, vjp, checkpointing)
     if isnothing(sensealg)
         return nothing
     end
@@ -12,9 +12,9 @@ function get_sensealg(sensealg, vjp)
     end
     
     if sensealg == :BacksolveAdjoint
-        return BacksolveAdjoint(; autojacvec)
+        return BacksolveAdjoint(; autojacvec, checkpointing)
     elseif sensealg == :InterpolatingAdjoint
-        return InterpolatingAdjoint(; autojacvec)
+        return InterpolatingAdjoint(; autojacvec, checkpointing)
     elseif sensealg == :QuadratureAdjoint
         return QuadratureAdjoint(; autojacvec)  # Doesn't work with ZygoteVJP
     end

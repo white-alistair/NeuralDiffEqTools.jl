@@ -97,6 +97,9 @@ function get_common_settings()
         "--vjp"
             arg_type = Symbol
             default = :ZygoteVJP
+        "--checkpointing"
+            arg_type = Bool
+            default = false
 
         # I/0
         "--verbose"
