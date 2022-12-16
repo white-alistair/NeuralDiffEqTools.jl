@@ -16,6 +16,6 @@ function get_sensealg(sensealg, vjp, checkpointing)
     elseif sensealg == :InterpolatingAdjoint
         return InterpolatingAdjoint(; autojacvec, checkpointing)
     elseif sensealg == :QuadratureAdjoint
-        return QuadratureAdjoint(; autojacvec)  # Doesn't work with ZygoteVJP
+        return QuadratureAdjoint(; autojacvec)  # Doesn't work with ZygoteVJP for out-of-place problems
     end
 end
