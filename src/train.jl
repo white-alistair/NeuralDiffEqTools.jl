@@ -37,7 +37,7 @@ function train!(
 
     # Set up the scheduled optimiser
     optimiser =
-        ExpDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
+        ExponentialDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
 
     # Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     sensealg = get_sensealg(sensealg, vjp, checkpointing)
@@ -155,7 +155,7 @@ function train!(
                 min_val_valid_time = val_valid_time
             end
 
-            isa(optimiser, ScheduledOptimiser) && update_learning_rate!(optimiser)
+            isa(optimiser, AbstractScheduledOptimiser) && update_learning_rate!(optimiser)
 
             if (time() - training_start_time) > time_limit
                 #! format: off
