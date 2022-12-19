@@ -1,60 +1,29 @@
 function train!(
-    prob,
-    θ,
-    data::Data{T};
-    # Solver args
-    solver::OrdinaryDiffEqAlgorithm = Tsit5(),
+    θ::Vector{T},
+    data::Data{T},
+    loss::Function,
+    optimiser::AbstractOptimiser{T},
+    prob::SciMLBase.AbstractDEProblem,
+    solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
+    sensealg::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
+        autojacvec = ReverseDiffVJP(true),
+    );
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
-    sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
-    vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
-    checkpointing::Bool = false,
-    # Optimiser args
-    optimiser_type::Type{O} = Adam,
-    initial_learning_rate::T = 1.0f-3,
-    min_learning_rate::T = 1.0f-3,
-    decay_rate::Union{T,Nothing} = nothing,
-    # Training args
     training_steps::AbstractVector = [1],
     epochs_per_step = 512,
-    norm = L2,
-    regularisation_param::T = 0.0f0,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     prolong_training = false,
     initial_gc_interval = 0,
-    # I/O args
     callback = display_progress,
     verbose = false,
     show_plot = false,
-) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
+) where {T<:AbstractFloat}
     @info "Beginning training..."
 
     (; train_data, val_data, test_data) = data
-
-    loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
-
-    # Set up the scheduled optimiser
-    if isnothing(decay_rate)
-        total_epochs = length(training_steps) * epochs_per_step
-        optimiser = ExponentialDecayOptimiser(
-            optimiser_type,
-            initial_learning_rate,
-            min_learning_rate,
-            total_epochs,
-        )
-    else
-        optimiser = ExponentialDecayOptimiser(
-            optimiser_type,
-            initial_learning_rate,
-            min_learning_rate,
-            decay_rate,
-        )
-    end
-
-    # Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
-    sensealg = get_sensealg(sensealg, vjp, checkpointing)
 
     # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)
@@ -206,6 +175,87 @@ function train!(
     test_loss,
     test_valid_time,
     training_duration
+end
+
+function train!(
+    θ::Vector{T},
+    data::Data{T},
+    prob::SciMLBase.AbstractDEProblem;
+    # Solver
+    solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
+    reltol::T = 1.0f-6,
+    abstol::T = 1.0f-6,
+    maxiters = 10_000,
+    # Adjoint
+    sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
+    vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
+    checkpointing::Bool = false,
+    # Optimiser
+    optimiser_type::Type{O} = Adam,
+    initial_learning_rate::T = 1.0f-3,
+    min_learning_rate::T = 1.0f-3,
+    decay_rate::Union{T,Nothing} = nothing,
+    # Training Schedule
+    training_steps::AbstractVector = [1],
+    epochs_per_step = 512,
+    # Regularisation
+    norm = L2,
+    regularisation_param::T = 0.0f0,
+    # Early Stopping
+    patience = Inf,
+    time_limit = 23 * 60 * 60.0f0,
+    prolong_training = false,
+    initial_gc_interval = 0,
+    # I/O
+    callback = display_progress,
+    verbose = false,
+    show_plot = false,
+) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
+    # 1. Set up the loss function
+    loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
+
+    # 2. Set up the scheduled optimiser
+    if isnothing(decay_rate)
+        total_epochs = length(training_steps) * epochs_per_step
+        optimiser = ExponentialDecayOptimiser(
+            optimiser_type,
+            initial_learning_rate,
+            min_learning_rate,
+            total_epochs,
+        )
+    else
+        optimiser = ExponentialDecayOptimiser(
+            optimiser_type,
+            initial_learning_rate,
+            min_learning_rate,
+            decay_rate,
+        )
+    end
+
+    # 3. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
+    sensealg = get_sensealg(sensealg, vjp, checkpointing)
+
+    return train!(
+        θ,
+        data,
+        loss,
+        optimiser,
+        prob,
+        solver,
+        sensealg;
+        reltol,
+        abstol,
+        maxiters,
+        training_steps,
+        epochs_per_step,
+        patience,
+        time_limit,
+        prolong_training,
+        initial_gc_interval,
+        callback,
+        verbose,
+        show_plot,
+    )
 end
 
 function predict(prob, θ; solver, saveat, reltol, abstol, maxiters, sensealg = nothing)
