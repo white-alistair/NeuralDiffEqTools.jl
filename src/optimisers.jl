@@ -13,7 +13,7 @@ function ExponentialDecayOptimiser(
     initial_learning_rate::T,
     min_learning_rate::T,
     decay_rate::T,
-) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser} 
+) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
     flux_optimiser = optimiser_type(initial_learning_rate)
     return ExponentialDecayOptimiser{O,T}(flux_optimiser, min_learning_rate, decay_rate)
 end
@@ -24,8 +24,8 @@ function ExponentialDecayOptimiser(
     min_learning_rate::T,
     epochs::Integer,
 ) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
-    flux_optimiser = optimiser_type(initial_learning_rate) 
-    decay_rate = (min_learning_rate / initial_learning_rate)^(1 / epochs)
+    flux_optimiser = optimiser_type(initial_learning_rate)
+    decay_rate = (min_learning_rate / initial_learning_rate)^(1 / (epochs - 1))
     return ExponentialDecayOptimiser{O,T}(flux_optimiser, min_learning_rate, decay_rate)
 end
 
