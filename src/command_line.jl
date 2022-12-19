@@ -71,8 +71,6 @@ function get_common_settings()
         "--time-limit", "--time"
             arg_type = Float32
             default = Inf32
-        "--prolong-training", "--prolong"
-            action = :store_true
         "--initial-gc-interval", "--gc-interval"
             arg_type = Int
             default = 0

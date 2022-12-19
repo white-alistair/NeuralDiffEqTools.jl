@@ -15,7 +15,6 @@ function train!(
     epochs_per_step = 512,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
-    prolong_training = false,
     initial_gc_interval = 0,
     callback = display_progress,
     verbose = false,
@@ -40,10 +39,6 @@ function train!(
     for steps_to_predict in training_steps
         data_loader = DataLoader(train_data, steps_to_predict)
         gc_interval = max(initial_gc_interval ÷ steps_to_predict, 1)
-
-        if prolong_training && (steps_to_predict == training_steps[end])
-            epochs_per_step = typemax(epochs_per_step)  # Train forever (or until the time limit) on the last training step
-        end
 
         step_start_time = time()
         for _ = 1:epochs_per_step
@@ -204,7 +199,6 @@ function train!(
     # Early Stopping
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
-    prolong_training = false,
     initial_gc_interval = 0,
     # I/O
     callback = display_progress,
@@ -250,7 +244,6 @@ function train!(
         epochs_per_step,
         patience,
         time_limit,
-        prolong_training,
         initial_gc_interval,
         callback,
         verbose,
