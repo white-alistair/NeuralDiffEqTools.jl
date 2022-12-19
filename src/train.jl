@@ -81,7 +81,7 @@ function train!(
             epoch += 1
             training_losses = Float32[]
 
-            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict optimiser.flux_opt.eta
+            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict optimiser.flux_optimiser.eta
 
             iter = 0
             epoch_start_time = time()
@@ -122,7 +122,7 @@ function train!(
                 )
 
                 push!(training_losses, training_loss)
-                Flux.update!(optimiser.flux_opt, θ, gradients[θ])
+                Flux.update!(optimiser.flux_optimiser, θ, gradients[θ])
 
                 # Call the garbace collector manually to avoid OOM errors on the cluster
                 (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
@@ -153,7 +153,7 @@ function train!(
                 [
                     epoch,
                     steps_to_predict,
-                    optimiser.flux_opt.eta,
+                    optimiser.flux_optimiser.eta,
                     mean(training_losses),
                     val_loss,
                     epoch_duration,
