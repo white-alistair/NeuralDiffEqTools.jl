@@ -51,15 +51,14 @@ function get_common_settings()
         "--optimiser-type", "--opt"
             arg_type = DataType
             default = Adam
-        "--learning-rate", "--lr"
+        "--initial-learning-rate", "--init-lr"
             arg_type = Float32
-            default = 1f-2
+            default = 1f-3
         "--min-learning-rate", "--min-lr"
             arg_type = Float32
-            default = 1f-2
+            default = 1f-3
         "--decay-rate", "--decay"
             arg_type = Float32
-            default = 1f0
         "--epochs-per-step", "--epochs"
             arg_type = Int
             default = 1024

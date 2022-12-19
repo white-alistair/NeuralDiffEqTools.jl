@@ -12,9 +12,9 @@ function train!(
     checkpointing::Bool = false,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
-    learning_rate::T = 1.0f-3,
+    initial_learning_rate::T = 1.0f-3,
     min_learning_rate::T = 1.0f-3,
-    decay_rate::T = 1.0f0,
+    decay_rate::Union{T,Nothing} = nothing,
     # Training args
     training_steps::AbstractVector = [1],
     epochs_per_step = 512,
@@ -36,8 +36,22 @@ function train!(
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
     # Set up the scheduled optimiser
-    optimiser =
-        ExponentialDecayOptimiser(optimiser_type(learning_rate), min_learning_rate, decay_rate)
+    if isnothing(decay_rate)
+        total_epochs = length(training_steps) * epochs_per_step
+        optimiser = ExponentialDecayOptimiser(
+            optimiser_type,
+            initial_learning_rate,
+            min_learning_rate,
+            total_epochs,
+        )
+    else
+        optimiser = ExponentialDecayOptimiser(
+            optimiser_type,
+            initial_learning_rate,
+            min_learning_rate,
+            decay_rate,
+        )
+    end
 
     # Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     sensealg = get_sensealg(sensealg, vjp, checkpointing)
@@ -48,7 +62,7 @@ function train!(
     min_val_epoch = 0
     min_val_valid_time = NaN32
     early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
-    
+
     # Keep track of training loss, validation loss, and duration per epoch
     learning_curve = Array{Array{Float32}}(undef, 0)
 
