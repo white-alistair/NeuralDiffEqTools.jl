@@ -1,4 +1,4 @@
-function get_sensealg(sensealg, vjp, checkpointing)
+function get_adjoint(sensealg, vjp, checkpointing)
     if isnothing(sensealg)
         return nothing
     end

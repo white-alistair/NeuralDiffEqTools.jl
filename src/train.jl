@@ -5,7 +5,7 @@ function train!(
     optimiser::AbstractOptimiser{T},
     prob::SciMLBase.AbstractDEProblem,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
-    sensealg::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
+    adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ReverseDiffVJP(true),
     );
     reltol::T = 1.0f-6,
@@ -71,7 +71,7 @@ function train!(
                         reltol,
                         abstol,
                         maxiters,
-                        sensealg,
+                        sensealg = adjoint,
                     )
                     training_loss = loss(predicted_trajectory, target_trajectory, θ)
                     return training_loss
@@ -233,7 +233,7 @@ function train!(
     end
 
     # 3. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
-    sensealg = get_sensealg(sensealg, vjp, checkpointing)
+    adjoint = get_adjoint(sensealg, vjp, checkpointing)
 
     return train!(
         θ,
@@ -242,7 +242,7 @@ function train!(
         optimiser,
         prob,
         solver,
-        sensealg;
+        adjoint;
         reltol,
         abstol,
         maxiters,
