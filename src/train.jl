@@ -8,7 +8,7 @@ function train!(
     abstol::T = 1.0f-6,
     maxiters = 10_000,
     sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
-    vjp::Union{Symbol,Nothing} = :ZygoteVJP,
+    vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
     checkpointing::Bool = false,
     # Optimiser args
     optimiser_type::Type{O} = Adam,
