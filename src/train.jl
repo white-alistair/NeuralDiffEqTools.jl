@@ -34,7 +34,7 @@ function train!(
     # Keep track of training loss, validation loss, and duration per epoch
     learning_curve = Array{Array{Float32}}(undef, 0)
 
-    epoch = 0
+    epochs = 0
     training_start_time = time()
     for steps_to_predict in training_steps
         data_loader = DataLoader(train_data, steps_to_predict)
@@ -42,10 +42,10 @@ function train!(
 
         step_start_time = time()
         for _ = 1:epochs_per_step
-            epoch += 1
+            epochs += 1
             training_losses = Float32[]
 
-            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict optimiser.flux_optimiser.eta
+            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epochs steps_to_predict optimiser.flux_optimiser.eta
 
             iter = 0
             epoch_start_time = time()
@@ -73,7 +73,7 @@ function train!(
                 end
 
                 !isnothing(callback) && callback(
-                    epoch,
+                    epochs,
                     iter,
                     steps_to_predict,
                     tspan,
@@ -106,16 +106,16 @@ function train!(
             )
 
             #! format: off
-            @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epoch steps_to_predict mean(training_losses)
-            @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epoch steps_to_predict val_loss
-            @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epoch steps_to_predict val_valid_time
-            @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epoch steps_to_predict epoch_duration
+            @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epochs steps_to_predict mean(training_losses)
+            @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epochs steps_to_predict val_loss
+            @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epochs steps_to_predict val_valid_time
+            @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epochs steps_to_predict epoch_duration
             #! format: on
 
             push!(
                 learning_curve,
                 [
-                    epoch,
+                    epochs,
                     steps_to_predict,
                     optimiser.flux_optimiser.eta,
                     mean(training_losses),
@@ -128,7 +128,7 @@ function train!(
 
             if val_loss < min_val_loss
                 θ_min = copy(θ)
-                min_val_epoch = epoch
+                min_val_epoch = epochs
                 min_val_loss = val_loss
                 min_val_valid_time = val_valid_time
             end
@@ -137,7 +137,7 @@ function train!(
 
             if (time() - training_start_time) > time_limit
                 #! format: off
-                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (time_limit / 3600)
+                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epochs steps_to_predict (time_limit / 3600)
                 @goto complete_training  # Use goto and label to break out of nested loops
                 #! format: on
             end
@@ -163,13 +163,14 @@ function train!(
     @info @sprintf "Test valid time = %.1f seconds\n" test_valid_time
     @info @sprintf "Training duration = %.1f seconds\n" training_duration
 
-    return learning_curve,
+    return training_duration,
+    learning_curve,
+    epochs,
     min_val_epoch,
     min_val_loss,
     min_val_valid_time,
     test_loss,
-    test_valid_time,
-    training_duration
+    test_valid_time
 end
 
 function train!(
