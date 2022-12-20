@@ -88,7 +88,7 @@ function train!(
                 push!(training_losses, training_loss)
                 Flux.update!(optimiser.flux_optimiser, θ, gradients[θ])
 
-                # Call the garbace collector manually to avoid OOM errors on the cluster
+                # Call the garbace collector manually to avoid OOM errors on the cluster when using ZygoteVJP
                 (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
             end
             epoch_duration = time() - epoch_start_time
