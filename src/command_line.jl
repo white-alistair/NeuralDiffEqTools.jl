@@ -42,6 +42,9 @@ function get_common_settings()
             default = relu
 
         # Training args
+        "--batch-size"
+            arg_type = Int
+            default = 1
         "--norm"
             arg_type = Function
             default = L2
@@ -56,24 +59,21 @@ function get_common_settings()
             default = 1f-3
         "--min-learning-rate", "--min-lr"
             arg_type = Float32
-            default = 1f-3
+            default = 1f-5
         "--decay-rate", "--decay"
             arg_type = Float32
-        "--epochs-per-step", "--epochs"
-            arg_type = Int
-            default = 1024
-        "--patience"
-            arg_type = Int
-            default = typemax(Int)  # ~Inf
         "--training-steps", "--steps"
             arg_type = Vector{Int}
             default = [1]
+        "--epochs-per-step", "--epochs"
+            arg_type = Int
+            default = 512
+        "--patience"
+            arg_type = Int
+            default = typemax(Int)  # ~Inf
         "--time-limit", "--time"
             arg_type = Float32
             default = Inf32
-        "--initial-gc-interval", "--gc-interval"
-            arg_type = Int
-            default = 0
 
         # Solver args
         "--reltol"

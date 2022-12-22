@@ -11,13 +11,11 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
+    batch_size = 1,
     training_steps::AbstractVector = [1],
     epochs_per_step = 512,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
-    initial_gc_interval = 0,
-    callback = display_progress,
-    verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat}
     @info "Beginning training..."
@@ -37,59 +35,49 @@ function train!(
     epochs = 0
     training_start_time = time()
     for steps_to_predict in training_steps
-        data_loader = DataLoader(train_data, steps_to_predict)
-        gc_interval = max(initial_gc_interval ÷ steps_to_predict, 1)
-
         step_start_time = time()
         for _ = 1:epochs_per_step
             epochs += 1
-            training_losses = Float32[]
 
             @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epochs steps_to_predict optimiser.flux_optimiser.eta
 
             iter = 0
+            training_losses = Float32[]
             epoch_start_time = time()
-            for (times, target_trajectory) in data_loader
+            for (batch_times, batch_trajectories) in DataLoader(train_data, steps_to_predict, batch_size)
                 iter += 1
-                tspan = (times[1], times[end])
-                u0 = target_trajectory[:, 1]
-                prob = remake(prob; u0, tspan)
 
-                local predicted_trajectory, training_loss  # Declare local so we can access them outside of the following do block
+                local training_loss
 
                 gradients = Zygote.gradient(Zygote.Params([θ])) do
-                    retcode, predicted_trajectory = predict(
-                        prob,
-                        θ;
-                        solver,
-                        saveat = times,
-                        reltol,
-                        abstol,
-                        maxiters,
-                        sensealg = adjoint,
-                    )
-                    training_loss = loss(predicted_trajectory, target_trajectory, θ)
-                    return training_loss
-                end
+                    N = 0
+                    training_loss = 0
 
-                !isnothing(callback) && callback(
-                    epochs,
-                    iter,
-                    steps_to_predict,
-                    tspan,
-                    training_loss,
-                    target_trajectory,
-                    predicted_trajectory,
-                    times;
-                    verbose,
-                    show_plot,
-                )
+                    for (target_times, target_trajectory) in zip(batch_times, batch_trajectories)
+                        tspan = (target_times[1], target_times[end])
+                        u0 = target_trajectory[:, 1]
+                        prob = remake(prob; u0, tspan)
+
+                        retcode, predicted_trajectory = predict(
+                            prob,
+                            θ;
+                            solver,
+                            saveat = target_times,
+                            reltol,
+                            abstol,
+                            maxiters,
+                            sensealg = adjoint,
+                        )
+
+                        N += 1
+                        training_loss += loss(predicted_trajectory, target_trajectory, θ)
+                    end
+
+                    return training_loss / N
+                end
 
                 push!(training_losses, training_loss)
                 Flux.update!(optimiser.flux_optimiser, θ, gradients[θ])
-
-                # Call the garbage collector manually to avoid OOM errors on the cluster when using ZygoteVJP
-                (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
             end
             epoch_duration = time() - epoch_start_time
 
@@ -192,6 +180,7 @@ function train!(
     min_learning_rate::T = 1.0f-3,
     decay_rate::Union{T,Nothing} = nothing,
     # Training Schedule
+    batch_size::Int = 1,
     training_steps::AbstractVector = [1],
     epochs_per_step = 512,
     # Regularisation
@@ -200,10 +189,7 @@ function train!(
     # Early Stopping
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
-    initial_gc_interval = 0,
     # I/O
-    callback = display_progress,
-    verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
     # 1. Set up the loss function
@@ -241,13 +227,11 @@ function train!(
         reltol,
         abstol,
         maxiters,
+        batch_size,
         training_steps,
         epochs_per_step,
         patience,
         time_limit,
-        initial_gc_interval,
-        callback,
-        verbose,
         show_plot,
     )
 end
