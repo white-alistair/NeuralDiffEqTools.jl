@@ -53,7 +53,7 @@ function train!(
                     N = 0
                     training_loss = 0
 
-                    Threads.@threads for (target_times, target_trajectory) in zip(batch_times, batch_trajectories)
+                    Threads.@threads for (target_times, target_trajectory) in collect(zip(batch_times, batch_trajectories))
                         tspan = (target_times[1], target_times[end])
                         u0 = target_trajectory[:, 1]
                         prob = remake(prob; u0, tspan)
