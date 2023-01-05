@@ -17,7 +17,7 @@ using OrdinaryDiffEq,
 
 include("data.jl")
 include("prob.jl")
-include("neural_nets.jl")
+include("mlp.jl")
 include("optimisers.jl")
 include("adjoints.jl")
 include("callbacks.jl")
