@@ -1,9 +1,9 @@
 function train!(
     θ::Vector{T},
+    prob::SciMLBase.AbstractDEProblem,
     data::Data{T},
     loss::Function,
     optimiser::AbstractOptimiser{T},
-    prob::SciMLBase.AbstractDEProblem,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ReverseDiffVJP(true),
@@ -175,8 +175,8 @@ end
 
 function train!(
     θ::Vector{T},
-    data::Data{T},
-    prob::SciMLBase.AbstractDEProblem;
+    prob::SciMLBase.AbstractDEProblem,
+    data::Data{T};
     # Solver
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     reltol::T = 1.0f-6,
@@ -232,10 +232,10 @@ function train!(
 
     return train!(
         θ,
+        prob,
         data,
         loss,
         optimiser,
-        prob,
         solver,
         adjoint;
         reltol,
