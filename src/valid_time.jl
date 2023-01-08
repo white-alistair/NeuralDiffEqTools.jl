@@ -3,8 +3,8 @@ function get_normalised_error(
     pred::AbstractMatrix{T},
 ) where {T<:AbstractFloat}
     return vec(
-        sqrt.(sum(abs2, target .- pred, dims = 1)) /
-        sqrt(mean(sum(abs2, target, dims = 1))),
+        sqrt.(sum(abs2, target .- pred; dims = 1)) /
+        sqrt(mean(sum(abs2, target; dims = 1))),
     )
 end
 
@@ -23,9 +23,11 @@ function get_valid_time(
     times::AbstractVector{T};
     error_threshold::T,
 ) where {T<:AbstractFloat}
-    valid_time_index = findfirst(error -> error > error_threshold, normalised_error)
-    if isnothing(valid_time_index)
-        valid_time_index = size(normalised_error)
+    error_threshold_index = findfirst(error -> error >= error_threshold, normalised_error)
+    if isnothing(error_threshold_index)
+        valid_time = times[end]
+    else
+        valid_time = times[error_threshold_index - 1]
     end
-    return times[valid_time_index[1]]
+    return valid_time
 end
