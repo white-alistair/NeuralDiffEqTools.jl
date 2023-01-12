@@ -120,3 +120,10 @@ function parse_command_line()
     common_settings = get_common_settings()
     return parse_args(common_settings)
 end
+
+function log_args(args)
+    ordered_args = sort(collect(args), by = x -> x[1])
+    for (arg_name, arg_value) in ordered_args
+        @info "$arg_name = $arg_value"
+    end
+end
