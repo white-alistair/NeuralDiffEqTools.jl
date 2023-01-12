@@ -55,9 +55,9 @@ function train!(
                 u0 = target_trajectory[:, 1]
                 prob = remake(prob; u0, tspan)
 
-                local predicted_trajectory, training_loss  # Declare local so we can access them outside of the following do block
+                local predicted_trajectory  # Declare local so we can access this outside of the following do block
 
-                gradients = Zygote.gradient(Zygote.Params([θ])) do
+                training_loss, gradients = Zygote.withgradient(θ) do θ
                     retcode, predicted_trajectory = predict(
                         prob,
                         θ;
@@ -68,8 +68,7 @@ function train!(
                         maxiters,
                         sensealg = adjoint,
                     )
-                    training_loss = loss(predicted_trajectory, target_trajectory, θ)
-                    return training_loss
+                    return loss(predicted_trajectory, target_trajectory, θ)
                 end
 
                 !isnothing(callback) && callback(
@@ -86,7 +85,7 @@ function train!(
                 )
 
                 push!(training_losses, training_loss)
-                Flux.update!(optimiser.flux_optimiser, θ, gradients[θ])
+                Flux.update!(optimiser.flux_optimiser, θ, gradients[1])
 
                 # Call the garbage collector manually to avoid OOM errors on the cluster when using ZygoteVJP
                 (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
@@ -133,7 +132,7 @@ function train!(
                 min_val_valid_time = val_valid_time
             end
 
-            isa(optimiser, AbstractScheduledOptimiser) && update_learning_rate!(optimiser)
+            (optimiser isa AbstractScheduledOptimiser) && update_learning_rate!(optimiser)
 
             if (time() - training_start_time) > time_limit
                 #! format: off
@@ -209,7 +208,7 @@ function train!(
     # 1. Set up the loss function
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
-    # 2. Set up the scheduled optimiser
+    # 2. Set up the optimiser
     if isnothing(decay_rate)
         total_epochs = length(training_steps) * epochs_per_step
         optimiser = ExponentialDecayOptimiser(
