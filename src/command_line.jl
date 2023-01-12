@@ -105,9 +105,6 @@ function get_common_settings()
         "--results-file"
             arg_type = String
             default = "results.csv"
-        "--model-dir"
-            arg_type = String
-            default = "models"
         "--learning-curve-dir", "--lc-dir"
             arg_type = String
             default = "learning_curves"
