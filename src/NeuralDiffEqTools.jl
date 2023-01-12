@@ -1,10 +1,8 @@
 module NeuralDiffEqTools
 
-export TimeSeries, Data, get_prob, get_mlp, train!, evaluate, save_results, save_learning_curve, get_common_settings
-
 using OrdinaryDiffEq,
-    SciMLSensitivity,
     SciMLBase,
+    SciMLSensitivity,
     Flux,
     Zygote,
     ArgParse,
