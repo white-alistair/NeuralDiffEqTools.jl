@@ -69,3 +69,17 @@ function evaluate(
 
     return mean(skipmissing(losses)), mean(skipmissing(valid_times))
 end
+
+function plot_prediction(ground_truth, predicted, times)
+    fig = CairoMakie.Figure()
+    dim = size(ground_truth)[1]
+    for i in 1:dim
+        ax = Axis(fig[i, 1])
+        lines_ground_truth = lines!(ax, times, ground_truth[i, :])
+        lines_predicted = lines!(ax, times, predicted[i, :])
+        if i == dim
+            Legend(fig[1:dim, 2], [lines_ground_truth, lines_predicted], ["ground truth", "predicted"])
+        end
+    end
+    display(fig)
+end

@@ -16,7 +16,6 @@ function train!(
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     initial_gc_interval = 0,
-    callback = display_progress,
     verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat}
@@ -34,7 +33,7 @@ function train!(
     # Keep track of training loss, validation loss, and duration per epoch
     learning_curve = Array{Array{Float32}}(undef, 0)
 
-    epochs = 0
+    epoch = 0
     training_start_time = time()
     for steps_to_predict in training_steps
         data_loader = DataLoader(train_data, steps_to_predict)
@@ -42,10 +41,10 @@ function train!(
 
         step_start_time = time()
         for _ = 1:epochs_per_step
-            epochs += 1
+            epoch += 1
             training_losses = Float32[]
 
-            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epochs steps_to_predict optimiser.flux_optimiser.eta
+            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict optimiser.flux_optimiser.eta
 
             iter = 0
             epoch_start_time = time()
@@ -54,8 +53,6 @@ function train!(
                 tspan = (times[1], times[end])
                 u0 = target_trajectory[:, 1]
                 prob = remake(prob; u0, tspan)
-
-                local predicted_trajectory  # Declare local so we can access this outside of the following do block
 
                 training_loss, gradients = Zygote.withgradient(θ) do θ
                     retcode, predicted_trajectory = predict(
@@ -71,24 +68,15 @@ function train!(
                     return loss(predicted_trajectory, target_trajectory, θ)
                 end
 
-                !isnothing(callback) && callback(
-                    epochs,
-                    iter,
-                    steps_to_predict,
-                    tspan,
-                    training_loss,
-                    target_trajectory,
-                    predicted_trajectory,
-                    times;
-                    verbose,
-                    show_plot,
-                )
-
                 push!(training_losses, training_loss)
                 Flux.update!(optimiser.flux_optimiser, θ, gradients[1])
 
                 # Call the garbage collector manually to avoid OOM errors on the cluster when using ZygoteVJP
                 (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
+
+                if verbose
+                    @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter steps_to_predict tspan[1] tspan[2] training_loss
+                end
             end
             epoch_duration = time() - epoch_start_time
 
@@ -105,16 +93,16 @@ function train!(
             )
 
             #! format: off
-            @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epochs steps_to_predict mean(training_losses)
-            @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epochs steps_to_predict val_loss
-            @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epochs steps_to_predict val_valid_time
-            @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epochs steps_to_predict epoch_duration
+            @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epoch steps_to_predict mean(training_losses)
+            @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epoch steps_to_predict val_loss
+            @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epoch steps_to_predict val_valid_time
+            @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epoch steps_to_predict epoch_duration
             #! format: on
 
             push!(
                 learning_curve,
                 [
-                    epochs,
+                    epoch,
                     steps_to_predict,
                     optimiser.flux_optimiser.eta,
                     mean(training_losses),
@@ -127,7 +115,7 @@ function train!(
 
             if val_loss < min_val_loss
                 θ_min = copy(θ)
-                min_val_epoch = epochs
+                min_val_epoch = epoch
                 min_val_loss = val_loss
                 min_val_valid_time = val_valid_time
             end
@@ -136,7 +124,7 @@ function train!(
 
             if (time() - training_start_time) > time_limit
                 #! format: off
-                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epochs steps_to_predict (time_limit / 3600)
+                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (time_limit / 3600)
                 @goto complete_training  # Use goto and label to break out of nested loops
                 #! format: on
             end
@@ -164,7 +152,7 @@ function train!(
 
     return training_duration,
     learning_curve,
-    epochs,
+    epoch,
     min_val_epoch,
     min_val_loss,
     min_val_valid_time,
@@ -201,7 +189,6 @@ function train!(
     time_limit = 23 * 60 * 60.0f0,
     initial_gc_interval = 0,
     # I/O
-    callback = display_progress,
     verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
@@ -245,7 +232,6 @@ function train!(
         patience,
         time_limit,
         initial_gc_interval,
-        callback,
         verbose,
         show_plot,
     )
