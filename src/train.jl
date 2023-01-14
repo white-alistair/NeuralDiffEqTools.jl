@@ -44,7 +44,7 @@ function train!(
             epoch += 1
             training_losses = Float32[]
 
-            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict optimiser.flux_optimiser.eta
+            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict get_learning_rate(optimiser)
 
             iter = 0
             epoch_start_time = time()
@@ -67,10 +67,10 @@ function train!(
                     )
                     return loss(predicted_trajectory, target_trajectory, θ)
                 end
+                Optimisers.update!(optimiser, θ, gradients)
 
                 push!(training_losses, training_loss)
-                Flux.update!(optimiser.flux_optimiser, θ, gradients[1])
-
+                
                 # Call the garbage collector manually to avoid OOM errors on the cluster when using ZygoteVJP
                 (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
 
@@ -104,7 +104,7 @@ function train!(
                 [
                     epoch,
                     steps_to_predict,
-                    optimiser.flux_optimiser.eta,
+                    get_learning_rate(optimiser),
                     mean(training_losses),
                     val_loss,
                     epoch_duration,
@@ -120,13 +120,15 @@ function train!(
                 min_val_valid_time = val_valid_time
             end
 
-            (optimiser isa AbstractScheduledOptimiser) && update_learning_rate!(optimiser)
-
             if (time() - training_start_time) > time_limit
                 #! format: off
                 @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (time_limit / 3600)
                 @goto complete_training  # Use goto and label to break out of nested loops
                 #! format: on
+            end
+
+            if optimiser isa AbstractScheduledOptimiser
+                update_learning_rate!(optimiser)
             end
 
             flush(stderr)  # Keep log files up to date on the cluster
@@ -174,9 +176,9 @@ function train!(
     vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
     checkpointing::Bool = false,
     # Optimiser
-    optimiser_type::Type{O} = Adam,
+    optimiser_rule::Type{O} = Optimisers.Adam,
     initial_learning_rate::T = 1.0f-3,
-    min_learning_rate::T = 1.0f-3,
+    min_learning_rate::T = 1.0f-5,
     decay_rate::Union{T,Nothing} = nothing,
     # Training Schedule
     training_steps::AbstractVector = [1],
@@ -191,27 +193,19 @@ function train!(
     # I/O
     verbose = false,
     show_plot = false,
-) where {T<:AbstractFloat,O<:Flux.Optimise.AbstractOptimiser}
+) where {T<:AbstractFloat,O<:Optimisers.AbstractRule}
     # 1. Set up the loss function
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
     # 2. Set up the optimiser
-    if isnothing(decay_rate)
-        total_epochs = length(training_steps) * epochs_per_step
-        optimiser = ExponentialDecayOptimiser(
-            optimiser_type,
-            initial_learning_rate,
-            min_learning_rate,
-            total_epochs,
-        )
-    else
-        optimiser = ExponentialDecayOptimiser(
-            optimiser_type,
-            initial_learning_rate,
-            min_learning_rate,
-            decay_rate,
-        )
-    end
+    optimiser = ExponentialDecayOptimiser(
+        optimiser_rule,
+        θ,
+        initial_learning_rate,
+        min_learning_rate,
+        decay_rate,
+        epochs_per_step,
+    )
 
     # 3. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     adjoint = get_adjoint(sensealg, vjp, checkpointing)

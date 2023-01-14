@@ -9,6 +9,6 @@ function get_mlp(
         [Dense(hidden_width => hidden_width, activation) for _ = 1:(hidden_layers-1)]...,  # Remaining hidden layers
         Dense(hidden_width => output_size),                                                # Output layer
     )
-    θ, re = Flux.destructure(mlp)
+    θ, re = Optimisers.destructure(mlp)
     return θ, re
 end
