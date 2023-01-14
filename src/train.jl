@@ -3,7 +3,7 @@ function train!(
     prob::SciMLBase.AbstractDEProblem,
     data::Data{T},
     loss::Function,
-    optimiser::AbstractOptimiser{T},
+    curriculum::Vector{Lesson{T}},
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ReverseDiffVJP(true),
@@ -11,8 +11,6 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
-    training_steps::AbstractVector = [1],
-    epochs_per_step = 512,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     initial_gc_interval = 0,
@@ -35,16 +33,18 @@ function train!(
 
     epoch = 0
     training_start_time = time()
-    for steps_to_predict in training_steps
-        data_loader = DataLoader(train_data, steps_to_predict)
-        gc_interval = max(initial_gc_interval ÷ steps_to_predict, 1)
+    for lesson in curriculum
+        (; steps, lesson_epochs, optimiser) = lesson
 
-        step_start_time = time()
-        for _ = 1:epochs_per_step
+        data_loader = DataLoader(train_data, steps)
+        gc_interval = max(initial_gc_interval ÷ steps, 1)
+
+        lesson_start_time = time()
+        for _ = 1:lesson_epochs
             epoch += 1
             training_losses = Float32[]
 
-            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps_to_predict get_learning_rate(optimiser)
+            @info @sprintf "[epoch = %04i] [steps = %02i] Learning rate = %.1e" epoch steps get_learning_rate(optimiser)
 
             iter = 0
             epoch_start_time = time()
@@ -67,6 +67,7 @@ function train!(
                     )
                     return loss(predicted_trajectory, target_trajectory, θ)
                 end
+
                 Optimisers.update!(optimiser, θ, gradients)
 
                 push!(training_losses, training_loss)
@@ -75,7 +76,7 @@ function train!(
                 (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
 
                 if verbose
-                    @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter steps_to_predict tspan[1] tspan[2] training_loss
+                    @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter steps tspan[1] tspan[2] training_loss
                 end
             end
             epoch_duration = time() - epoch_start_time
@@ -93,17 +94,17 @@ function train!(
             )
 
             #! format: off
-            @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epoch steps_to_predict mean(training_losses)
-            @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epoch steps_to_predict val_loss
-            @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epoch steps_to_predict val_valid_time
-            @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epoch steps_to_predict epoch_duration
+            @info @sprintf "[epoch = %04i] [steps = %02i] Average training loss = %.2e\n" epoch steps mean(training_losses)
+            @info @sprintf "[epoch = %04i] [steps = %02i] Validation loss = %.2e\n" epoch steps val_loss
+            @info @sprintf "[epoch = %04i] [steps = %02i] Valid time = %.1f seconds\n" epoch steps val_valid_time
+            @info @sprintf "[epoch = %04i] [steps = %02i] Epoch duration = %.1f seconds\n" epoch steps epoch_duration
             #! format: on
 
             push!(
                 learning_curve,
                 [
                     epoch,
-                    steps_to_predict,
+                    steps,
                     get_learning_rate(optimiser),
                     mean(training_losses),
                     val_loss,
@@ -122,7 +123,7 @@ function train!(
 
             if (time() - training_start_time) > time_limit
                 #! format: off
-                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps_to_predict (time_limit / 3600)
+                @info @sprintf "[epoch = %04i] [steps = %02i] Time limit of %.1f hours reached for the training loop. Stopping here." epoch steps (time_limit / 3600)
                 @goto complete_training  # Use goto and label to break out of nested loops
                 #! format: on
             end
@@ -133,8 +134,8 @@ function train!(
 
             flush(stderr)  # Keep log files up to date on the cluster
         end
-        step_duration = time() - step_start_time
-        @info @sprintf "[steps = %02i] Step duration = %.1f seconds\n" steps_to_predict step_duration
+        lesson_duration = time() - lesson_start_time
+        @info @sprintf "[steps = %02i] Lesson duration = %.1f seconds\n" steps lesson_duration
     end
 
     @label complete_training
@@ -165,7 +166,8 @@ end
 function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
-    data::Data{T};
+    data::Data{T},
+    curriculum::Vector{Lesson{T}};
     # Solver
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     reltol::T = 1.0f-6,
@@ -215,14 +217,12 @@ function train!(
         prob,
         data,
         loss,
-        optimiser,
+        curriculum,
         solver,
         adjoint;
         reltol,
         abstol,
         maxiters,
-        training_steps,
-        epochs_per_step,
         patience,
         time_limit,
         initial_gc_interval,
