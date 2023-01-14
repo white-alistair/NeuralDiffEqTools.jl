@@ -64,7 +64,6 @@ function evaluate(
         )
         push!(losses, loss)
         push!(valid_times, valid_time)
-        GC.gc(false)
     end
 
     return mean(skipmissing(losses)), mean(skipmissing(valid_times))

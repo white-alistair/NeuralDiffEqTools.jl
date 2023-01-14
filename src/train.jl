@@ -13,7 +13,6 @@ function train!(
     maxiters = 10_000,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
-    initial_gc_interval = 0,
     verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat}
@@ -37,7 +36,6 @@ function train!(
         (; steps, lesson_epochs, optimiser) = lesson
 
         data_loader = DataLoader(train_data, steps)
-        gc_interval = max(initial_gc_interval ÷ steps, 1)
 
         lesson_start_time = time()
         for _ = 1:lesson_epochs
@@ -71,9 +69,6 @@ function train!(
                 Optimisers.update!(optimiser, θ, gradients)
 
                 push!(training_losses, training_loss)
-                
-                # Call the garbage collector manually to avoid OOM errors on the cluster when using ZygoteVJP
-                (initial_gc_interval != 0) && (iter % gc_interval == 0) && GC.gc(false)
 
                 if verbose
                     @info @sprintf "[epoch = %04i] [iter = %04i] [steps = %02i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter steps tspan[1] tspan[2] training_loss
@@ -191,7 +186,6 @@ function train!(
     # Early Stopping
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
-    initial_gc_interval = 0,
     # I/O
     verbose = false,
     show_plot = false,
@@ -225,7 +219,6 @@ function train!(
         maxiters,
         patience,
         time_limit,
-        initial_gc_interval,
         verbose,
         show_plot,
     )
