@@ -18,29 +18,6 @@ struct ExponentialDecayOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <:
 end
 
 function ExponentialDecayOptimiser(
-    rule_type::Type{O},
-    θ::AbstractVector{T},
-    initial_learning_rate::T,
-    min_learning_rate::T,
-    decay_rate::Union{T,Nothing},
-    epochs::Union{Int,Nothing},
-) where {T<:AbstractFloat,O<:Optimisers.AbstractRule}
-    rule = rule_type(initial_learning_rate)
-    state = Optimisers.setup(rule, θ)
-
-    if isnothing(decay_rate)
-        decay_rate = (min_learning_rate / initial_learning_rate)^(1 / (epochs - 1))
-    end
-
-    return ExponentialDecayOptimiser{typeof(state),T}(
-        state,
-        initial_learning_rate,
-        min_learning_rate,
-        decay_rate,
-    )
-end
-
-function ExponentialDecayOptimiser(
     state::Optimisers.Leaf,
     initial_learning_rate::T,
     min_learning_rate::T,
