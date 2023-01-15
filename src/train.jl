@@ -43,7 +43,9 @@ function train!(
             epoch += 1
             training_losses = Float32[]
 
+            #! format: off
             @info @sprintf "[lesson = %s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(optimiser)
+            #! format: on
 
             iter = 0
             epoch_start_time = time()
