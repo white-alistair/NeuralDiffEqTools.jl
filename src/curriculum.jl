@@ -16,18 +16,8 @@ function init_curriculum(curriculum_file, θ::AbstractVector{T}) where {T}
 
     lessons = Lesson{T}[]
     for lesson_dict in curriculum_dict["lessons"]
-        name, epochs, steps, schedule_dict = unpack_lesson(lesson_dict)
-        initial_learning_rate, min_learning_rate, decay_rate =
-            unpack_schedule(schedule_dict)
-
-        optimiser = ExponentialDecayOptimiser(
-            opt_state,
-            initial_learning_rate,
-            min_learning_rate,
-            decay_rate,
-            epochs,
-        )
-
+        name, epochs, steps, schedule = unpack_lesson(lesson_dict)
+        optimiser = get_optimiser(T, opt_state, epochs, schedule)
         lesson = Lesson{T,typeof(optimiser)}(name, steps, epochs, optimiser)
         push!(lessons, lesson)
     end
@@ -53,8 +43,28 @@ function unpack_lesson(lesson_dict)
 end
 
 function unpack_schedule(schedule_dict)
+    schedule_type = schedule_dict["type"]
     initial_learning_rate = schedule_dict["initial_learning_rate"]
     min_learning_rate = schedule_dict["min_learning_rate"]
     decay_rate = get(schedule_dict, "decay_rate", nothing)
     return initial_learning_rate, min_learning_rate, decay_rate
+end
+
+function get_optimiser(T, opt_state, epochs, schedule)
+    schedule_type = schedule["type"]
+    if schedule_type == "constant"
+        learning_rate = schedule["learning_rate"]
+        return ConstantLearningRateOptimiser{typeof(opt_state),T}(opt_state, learning_rate)
+    elseif schedule_type == "exponential_decay"
+        initial_learning_rate = schedule["initial_learning_rate"]
+        min_learning_rate = schedule["min_learning_rate"]
+        decay_rate = get(schedule, "decay_rate", nothing)
+        return ExponentialDecayOptimiser(
+            opt_state,
+            initial_learning_rate,
+            min_learning_rate,
+            decay_rate,
+            epochs,
+        )
+    end
 end

@@ -3,6 +3,12 @@ import Optimisers: update!
 abstract type AbstractOptimiser{T} end
 abstract type AbstractScheduledOptimiser{T} <: AbstractOptimiser{T} end
 
+struct ConstantLearningRateOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <:
+       AbstractOptimiser{T}
+    state::O
+    learning_rate::T
+end
+
 struct ExponentialDecayOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <:
        AbstractScheduledOptimiser{T}
     state::O
@@ -57,6 +63,12 @@ function Optimisers.update!(opt::AbstractOptimiser, θ, Δθ)
     Optimisers.update!(opt.state, θ, Δθ[1])
 end
 
+function set_initial_learning_rate!(opt::ConstantLearningRateOptimiser)
+    (; state, learning_rate) = opt
+    Optimisers.adjust!(state; eta = learning_rate)
+    return nothing
+end
+
 function set_initial_learning_rate!(opt::AbstractScheduledOptimiser)
     (; state, initial_learning_rate) = opt
     Optimisers.adjust!(state; eta = initial_learning_rate)
@@ -71,6 +83,6 @@ function update_learning_rate!(opt::ExponentialDecayOptimiser)
     return nothing
 end
 
-function get_learning_rate(opt::AbstractScheduledOptimiser)
+function get_learning_rate(opt::AbstractOptimiser)
     return opt.state.rule.eta
 end
