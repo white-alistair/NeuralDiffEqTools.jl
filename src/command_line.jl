@@ -14,13 +14,17 @@ function ArgParse.parse_item(::Type{OrdinaryDiffEqAlgorithm}, solver_name::Abstr
     return eval_string(solver_name * "()")
 end
 
-function ArgParse.parse_item(::Type{Vector{T}}, arg_string::AbstractString) where {T}
-    return [parse(T, item) for item in split(arg_string, ',')]
+function ArgParse.parse_item(::Type{NamedTuple}, arg_string::AbstractString)
+    items = eachsplit(arg_string, ",")
+    names = [Symbol(strip.(split(item, "="))[1]) for item in items]
+    args = [parse(Float32, (split(item, "=")[2])) for item in items]
+    return (; zip(names, args)...)
 end
 
 function get_common_settings()
-    common_settings = ArgParseSettings(autofix_names = true)
+    common_settings = ArgParseSettings(; autofix_names = true)
 
+    #! format: off
     @add_arg_table common_settings begin
         # Experiment args
         "--job-id"
@@ -42,32 +46,24 @@ function get_common_settings()
             default = relu
 
         # Training args
+        "--curriculum-file"
+            arg_type = String
+            default = "curriculum.toml"
         "--norm"
             arg_type = Function
             default = L2
         "--regularisation-param", "--reg-param"
             arg_type = Float32
             default = 0f0
-        "--optimiser-type", "--opt"
-            arg_type = DataType
-            default = Adam
-        "--initial-learning-rate", "--init-lr"
-            arg_type = Float32
-            default = 1f-3
-        "--min-learning-rate", "--min-lr"
-            arg_type = Float32
-            default = 1f-3
-        "--decay-rate", "--decay"
-            arg_type = Float32
-        "--epochs-per-step", "--epochs"
-            arg_type = Int
-            default = 1024
+        "--optimiser-rule", "--opt"
+            arg_type = Symbol
+            default = :AdamW
+        "--optimiser-hyperparams", "--opt-params"
+            arg_type = NamedTuple
+            default = (;)
         "--patience"
             arg_type = Int
             default = typemax(Int)  # ~Inf
-        "--training-steps", "--steps"
-            arg_type = Vector{Int}
-            default = [1]
         "--time-limit", "--time"
             arg_type = Float32
             default = Inf32
@@ -106,6 +102,7 @@ function get_common_settings()
             arg_type = String
             default = "learning_curves"
     end
+    #! format: on
 
     return common_settings
 end
@@ -116,7 +113,7 @@ function parse_command_line()
 end
 
 function log_args(args)
-    ordered_args = sort(collect(args), by = x -> x[1])
+    ordered_args = sort(collect(args); by = x -> x[1])
     for (arg_name, arg_value) in ordered_args
         @info "$arg_name = $arg_value"
     end
