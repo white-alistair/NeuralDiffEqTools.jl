@@ -162,8 +162,7 @@ end
 function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
-    data::Data{T},
-    curriculum::Vector{Lesson{T}};
+    data::Data{T};
     # Solver
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     reltol::T = 1.0f-6,
@@ -173,14 +172,10 @@ function train!(
     sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
     vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
     checkpointing::Bool = false,
-    # Optimiser
-    optimiser_rule::Type{O} = Optimisers.Adam,
-    initial_learning_rate::T = 1.0f-3,
-    min_learning_rate::T = 1.0f-5,
-    decay_rate::Union{T,Nothing} = nothing,
-    # Training Schedule
-    training_steps::AbstractVector = [1],
-    epochs_per_step = 512,
+    # Training
+    opt_rule::String = "AdamW",
+    opt_hyperparameters::NamedTuple = (; gamma = 0.0),
+    curriculum_file::String = "curriculum.toml",
     # Regularisation
     norm = L2,
     regularisation_param::T = 0.0f0,
@@ -190,19 +185,13 @@ function train!(
     # I/O
     verbose = false,
     show_plot = false,
-) where {T<:AbstractFloat,O<:Optimisers.AbstractRule}
+) where {T<:AbstractFloat}
     # 1. Set up the loss function
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
-    # 2. Set up the optimiser
-    optimiser = ExponentialDecayOptimiser(
-        optimiser_rule,
-        θ,
-        initial_learning_rate,
-        min_learning_rate,
-        decay_rate,
-        epochs_per_step,
-    )
+    # 2. Set up the optimiser and learning curriculum
+    opt_state = setup_optimiser(opt_rule, opt_hyperparameters, θ)
+    curriculum = Curriculum(curriculum_file, opt_state, T)
 
     # 3. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     adjoint = get_adjoint(sensealg, vjp, checkpointing)
