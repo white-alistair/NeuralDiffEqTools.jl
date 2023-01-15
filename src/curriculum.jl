@@ -28,7 +28,7 @@ end
 function get_optimiser_state(curriculum_dict, θ)
     rule_type = curriculum_dict["optimiser"]["rule"]
     if rule_type == "Adam"
-        rule = Optimisers.Adam()  # Default params (these will be changed later)
+        rule = Optimisers.Adam()
     end
     state = Optimisers.setup(rule, θ)
     return state
@@ -55,6 +55,17 @@ function get_optimiser(T, opt_state, epochs, schedule)
     if schedule_type == "constant"
         learning_rate = schedule["learning_rate"]
         return ConstantLearningRateOptimiser{typeof(opt_state),T}(opt_state, learning_rate)
+    elseif schedule_type == "linear_decay"
+        initial_learning_rate = schedule["initial_learning_rate"]
+        min_learning_rate = schedule["min_learning_rate"]
+        decay = get(schedule, "decay", nothing)
+        return LinearDecayOptimiser(
+            opt_state,
+            initial_learning_rate,
+            min_learning_rate,
+            decay,
+            epochs,
+        )
     elseif schedule_type == "exponential_decay"
         initial_learning_rate = schedule["initial_learning_rate"]
         min_learning_rate = schedule["min_learning_rate"]
