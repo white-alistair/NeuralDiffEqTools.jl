@@ -137,9 +137,9 @@ function get_learning_rate(rule::Optimisers.OptimiserChain)
 end
 
 function setup_optimiser(rule_type, opt_hyperparameters, θ)
-    if rule_type == "Adam"
+    if rule_type == :Adam
         rule = Optimisers.Adam()
-    elseif rule_type == "AdamW"
+    elseif rule_type == :AdamW
         rule = Optimisers.AdamW()
     end
     state = Optimisers.setup(rule, θ)
