@@ -14,17 +14,22 @@ end
 
 function Curriculum(curriculum_file, opt_state, T)
     curriculum_dict = TOML.parsefile(curriculum_file)
-    name = curriculum_dict["name"]
+    curriculum_name = curriculum_dict["name"]
 
     lessons = Lesson{T}[]
     for lesson_dict in curriculum_dict["lessons"]
-        name, epochs, steps, schedule = unpack_lesson(lesson_dict)
+        lesson_name, epochs, steps, schedule = unpack_lesson(lesson_dict)
         optimiser = get_optimiser(opt_state, epochs, schedule, T)
-        lesson = Lesson{T,typeof(optimiser)}(name, steps, epochs, optimiser)
+        lesson = Lesson{T,typeof(optimiser)}(lesson_name, steps, epochs, optimiser)
         push!(lessons, lesson)
     end
 
-    return Curriculum{T,typeof(opt_state)}(name, hash(curriculum_dict), opt_state, lessons)
+    return Curriculum{T,typeof(opt_state)}(
+        curriculum_name,
+        hash(curriculum_dict),
+        opt_state,
+        lessons,
+    )
 end
 
 function unpack_lesson(lesson_dict)
