@@ -44,7 +44,7 @@ function train!(
             training_losses = Float32[]
 
             #! format: off
-            @info @sprintf "[lesson = %s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(optimiser)
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(optimiser)
             #! format: on
 
             iter = 0
@@ -74,7 +74,7 @@ function train!(
                 push!(training_losses, training_loss)
 
                 if verbose
-                    @info @sprintf "[lesson = %s] [epoch = %04i] [iter = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" name epoch iter tspan[1] tspan[2] training_loss
+                    @info @sprintf "[lesson = %-20.20s] [epoch = %04i] [iter = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" name epoch iter tspan[1] tspan[2] training_loss
                 end
             end
             epoch_duration = time() - epoch_start_time
@@ -92,10 +92,10 @@ function train!(
             )
 
             #! format: off
-            @info @sprintf "[lesson = %s] [epoch = %04i] Average training loss = %.2e\n" name epoch mean(training_losses)
-            @info @sprintf "[lesson = %s] [epoch = %04i] Validation loss = %.2e\n" name epoch val_loss
-            @info @sprintf "[lesson = %s] [epoch = %04i] Valid time = %.1f seconds\n" name epoch val_valid_time
-            @info @sprintf "[lesson = %s] [epoch = %04i] Epoch duration = %.1f seconds\n" name epoch epoch_duration
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Average training loss = %.2e\n" name epoch mean(training_losses)
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Validation loss = %.2e\n" name epoch val_loss
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Valid time = %.1f seconds\n" name epoch val_valid_time
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Epoch duration = %.1f seconds\n" name epoch epoch_duration
             #! format: on
 
             push!(
@@ -121,7 +121,7 @@ function train!(
 
             if (time() - training_start_time) > time_limit
                 #! format: off
-                @info @sprintf "[lesson = %s] [epoch = %04i] Time limit of %.1f hours reached for the training loop. Stopping here." name epoch (time_limit / 3600)
+                @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Time limit of %.1f hours reached for the training loop. Stopping here." name epoch (time_limit / 3600)
                 @goto complete_training  # Use goto and label to break out of nested loops
                 #! format: on
             end
@@ -133,7 +133,7 @@ function train!(
             flush(stderr)  # Keep log files up to date on the cluster
         end
         lesson_duration = time() - lesson_start_time
-        @info @sprintf "[lesson = %s] Lesson duration = %.1f seconds\n" name lesson_duration
+        @info @sprintf "[lesson = %-20.20s] Lesson duration = %.1f seconds\n" name lesson_duration
     end
 
     @label complete_training
