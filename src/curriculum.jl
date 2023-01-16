@@ -6,12 +6,15 @@ struct Lesson{T,O<:AbstractOptimiser{T}}
 end
 
 struct Curriculum{T,O<:Optimisers.Leaf}
+    name::String
+    hash::UInt64
     optimiser_state::O  # Shared across all lessons
     lessons::Vector{Lesson{T}}
 end
 
 function Curriculum(curriculum_file, opt_state, T)
     curriculum_dict = TOML.parsefile(curriculum_file)
+    name = curriculum_dict["name"]
 
     lessons = Lesson{T}[]
     for lesson_dict in curriculum_dict["lessons"]
@@ -21,7 +24,7 @@ function Curriculum(curriculum_file, opt_state, T)
         push!(lessons, lesson)
     end
 
-    return Curriculum{T,typeof(opt_state)}(opt_state, lessons)
+    return Curriculum{T,typeof(opt_state)}(name, hash(curriculum_dict), opt_state, lessons)
 end
 
 function unpack_lesson(lesson_dict)
