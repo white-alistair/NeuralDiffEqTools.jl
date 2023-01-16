@@ -2,8 +2,8 @@ function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
     data::Data{T},
-    loss::Function,
     curriculum::Curriculum{T},
+    loss::Function,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ReverseDiffVJP(true),
@@ -164,7 +164,8 @@ end
 function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
-    data::Data{T};
+    data::Data{T},
+    curriculum::Curriculum{T};
     # Solver
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     reltol::T = 1.0f-6,
@@ -177,7 +178,6 @@ function train!(
     # Training
     opt_rule::String = "AdamW",
     opt_hyperparameters::NamedTuple = (; gamma = 0.0),
-    curriculum_file::String = "curriculum.toml",
     # Regularisation
     norm = L2,
     regularisation_param::T = 0.0f0,
@@ -191,19 +191,15 @@ function train!(
     # 1. Set up the loss function
     loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * norm(θ)
 
-    # 2. Set up the optimiser and learning curriculum
-    opt_state = setup_optimiser(opt_rule, opt_hyperparameters, θ)
-    curriculum = Curriculum(curriculum_file, opt_state, T)
-
-    # 3. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
+    # 2. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     adjoint = get_adjoint(sensealg, vjp, checkpointing)
 
     return train!(
         θ,
         prob,
         data,
-        loss,
         curriculum,
+        loss,
         solver,
         adjoint;
         reltol,
