@@ -88,6 +88,35 @@ function update_learning_rate!(opt::LinearDecayOptimiser)
     return nothing
 end
 
+# Linear Warmup
+struct LinearWarmupOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <: AbstractScheduledOptimiser{T}
+    state::O
+    step::T
+end
+
+function LinearWarmupOptimiser(
+    state::Optimisers.Leaf,
+    initial_learning_rate::T,
+    final_learning_rate::T,
+    epochs::Int,
+) where {T}
+    step = (final_learning_rate - initial_learning_rate) / (epochs - 1)
+
+    return LinearWarmupOptimiser{typeof(state),Float32}(
+        state,
+        step,
+    )
+end
+
+function update_learning_rate!(opt::LinearWarmupOptimiser)
+    (; state, step) = opt
+    old_learning_rate = get_learning_rate(state.rule)
+    new_learning_rate = old_learning_rate + step
+    Optimisers.adjust!(state; eta = new_learning_rate)
+    return nothing
+end
+
+# Other methods
 function Optimisers.update!(opt::AbstractOptimiser, θ, Δθ)
     Optimisers.update!(opt.state, θ, Δθ[1])
 end
