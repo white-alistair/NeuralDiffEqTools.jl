@@ -34,39 +34,33 @@ end
 
 function get_optimiser(opt_state, epochs, schedule, T)
     schedule_type = schedule["type"]
-    if schedule_type == "linear_warmup"
-        initial_learning_rate = schedule["initial_learning_rate"]
-        final_learning_rate = schedule["final_learning_rate"]
-        return LinearWarmupOptimiser{typeof(opt_state),T}(
-            opt_state,
-            initial_learning_rate,
-            final_learning_rate,
-            epochs,
-        )
-    elseif schedule_type == "constant"
+    if schedule_type == "constant"
         learning_rate = schedule["learning_rate"]
         return ConstantLearningRateOptimiser{typeof(opt_state),T}(opt_state, learning_rate)
-    elseif schedule_type == "linear_decay"
+    else
         initial_learning_rate = schedule["initial_learning_rate"]
-        min_learning_rate = schedule["min_learning_rate"]
-        decay = get(schedule, "decay", nothing)
-        return LinearDecayOptimiser(
-            opt_state,
-            initial_learning_rate,
-            min_learning_rate,
-            decay,
-            epochs,
-        )
-    elseif schedule_type == "exponential_decay"
-        initial_learning_rate = schedule["initial_learning_rate"]
-        min_learning_rate = schedule["min_learning_rate"]
-        decay_rate = get(schedule, "decay_rate", nothing)
-        return ExponentialDecayOptimiser(
-            opt_state,
-            initial_learning_rate,
-            min_learning_rate,
-            decay_rate,
-            epochs,
-        )
+        final_learning_rate = schedule["final_learning_rate"]
+        if schedule_type == "linear_warmup"
+            return LinearWarmupOptimiser{typeof(opt_state),T}(
+                opt_state,
+                initial_learning_rate,
+                final_learning_rate,
+                epochs,
+            )
+        elseif schedule_type == "linear_decay"
+            return LinearDecayOptimiser(
+                opt_state,
+                initial_learning_rate,
+                final_learning_rate,
+                epochs,
+            )
+        elseif schedule_type == "exponential_decay"
+            return ExponentialDecayOptimiser(
+                opt_state,
+                initial_learning_rate,
+                final_learning_rate,
+                epochs,
+            )
+        end
     end
 end
