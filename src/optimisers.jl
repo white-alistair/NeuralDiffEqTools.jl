@@ -21,33 +21,28 @@ struct ExponentialDecayOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <:
        AbstractScheduledOptimiser{T}
     state::O
     initial_learning_rate::T
-    min_learning_rate::T
     decay_rate::T
 end
 
 function ExponentialDecayOptimiser(
     state::Optimisers.Leaf,
     initial_learning_rate::T,
-    min_learning_rate::T,
-    decay_rate::Union{T,Nothing},
-    epochs::Union{Int,Nothing},
+    final_learning_rate::T,
+    epochs::Int,
 ) where {T}
-    if isnothing(decay_rate)
-        decay_rate = (min_learning_rate / initial_learning_rate)^(1 / (epochs - 1))
-    end
+    decay_rate = (final_learning_rate / initial_learning_rate)^(1 / (epochs - 1))
 
     return ExponentialDecayOptimiser{typeof(state),Float32}(
         state,
         initial_learning_rate,
-        min_learning_rate,
         decay_rate,
     )
 end
 
 function update_learning_rate!(opt::ExponentialDecayOptimiser)
-    (; state, min_learning_rate, decay_rate) = opt
+    (; state, decay_rate) = opt
     old_learning_rate = get_learning_rate(state.rule)
-    new_learning_rate = max(min_learning_rate, old_learning_rate * decay_rate)
+    new_learning_rate = old_learning_rate * decay_rate
     Optimisers.adjust!(state; eta = new_learning_rate)
     return nothing
 end
@@ -57,33 +52,28 @@ struct LinearDecayOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <:
        AbstractScheduledOptimiser{T}
     state::O
     initial_learning_rate::T
-    min_learning_rate::T
-    decay::T
+    step::T
 end
 
 function LinearDecayOptimiser(
     state::Optimisers.Leaf,
     initial_learning_rate::T,
-    min_learning_rate::T,
-    decay::Union{T,Nothing},
-    epochs::Union{Int,Nothing},
+    final_learning_rate::T,
+    epochs::Int,
 ) where {T}
-    if isnothing(decay)
-        decay = (initial_learning_rate - min_learning_rate) / (epochs - 1)
-    end
+    step = (initial_learning_rate - final_learning_rate) / (epochs - 1)
 
     return LinearDecayOptimiser{typeof(state),Float32}(
         state,
         initial_learning_rate,
-        min_learning_rate,
-        decay,
+        step,
     )
 end
 
 function update_learning_rate!(opt::LinearDecayOptimiser)
-    (; state, min_learning_rate, decay) = opt
+    (; state, step) = opt
     old_learning_rate = get_learning_rate(state.rule)
-    new_learning_rate = max(min_learning_rate, old_learning_rate - decay)
+    new_learning_rate = old_learning_rate - step
     Optimisers.adjust!(state; eta = new_learning_rate)
     return nothing
 end
@@ -91,6 +81,7 @@ end
 # Linear Warmup
 struct LinearWarmupOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <: AbstractScheduledOptimiser{T}
     state::O
+    initial_learning_rate::T
     step::T
 end
 
@@ -104,6 +95,7 @@ function LinearWarmupOptimiser(
 
     return LinearWarmupOptimiser{typeof(state),Float32}(
         state,
+        initial_learning_rate,
         step,
     )
 end
