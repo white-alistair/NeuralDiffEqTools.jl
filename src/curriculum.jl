@@ -41,7 +41,7 @@ function get_optimiser(opt_state, epochs, schedule, T)
         initial_learning_rate = schedule["initial_learning_rate"]
         final_learning_rate = schedule["final_learning_rate"]
         if schedule_type == "linear_warmup"
-            return LinearWarmupOptimiser{typeof(opt_state),T}(
+            return LinearWarmupOptimiser(
                 opt_state,
                 initial_learning_rate,
                 final_learning_rate,
