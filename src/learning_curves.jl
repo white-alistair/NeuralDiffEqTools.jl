@@ -82,8 +82,7 @@ function plot_learning_curve(
     # 2. Plot learning rate
     ax3 = Axis(
         f[5, 1];
-        yscale = log10,
-        yticks = LogTicks(IntegerTicks()),
+        yticks = IntegerTicks(),
         ylabel = "learning rate",
     )
     linkxaxes!(ax1, ax3)
