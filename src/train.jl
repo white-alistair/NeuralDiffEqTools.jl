@@ -175,9 +175,6 @@ function train!(
     sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
     vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
     checkpointing::Bool = false,
-    # Training
-    opt_rule::String = "AdamW",
-    opt_hyperparameters::NamedTuple = (; gamma = 0.0),
     # Regularisation
     norm = L2,
     regularisation_param::T = 0.0f0,
