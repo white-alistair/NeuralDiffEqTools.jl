@@ -34,7 +34,16 @@ end
 
 function get_optimiser(opt_state, epochs, schedule, T)
     schedule_type = schedule["type"]
-    if schedule_type == "constant"
+    if schedule_type == "linear_warmup"
+        initial_learning_rate = schedule["initial_learning_rate"]
+        final_learning_rate = schedule["final_learning_rate"]
+        return LinearWarmupOptimiser{typeof(opt_state),T}(
+            opt_state,
+            initial_learning_rate,
+            final_learning_rate,
+            epochs,
+        )
+    elseif schedule_type == "constant"
         learning_rate = schedule["learning_rate"]
         return ConstantLearningRateOptimiser{typeof(opt_state),T}(opt_state, learning_rate)
     elseif schedule_type == "linear_decay"
