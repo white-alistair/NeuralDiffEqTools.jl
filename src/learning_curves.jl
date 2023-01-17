@@ -83,6 +83,7 @@ function plot_learning_curve(
     ax3 = Axis(
         f[5, 1];
         ylabel = "learning rate",
+        ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
     )
     linkxaxes!(ax1, ax3)
     lines!(ax3, epoch, learning_rate)
