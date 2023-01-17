@@ -57,7 +57,7 @@ function get_common_settings()
             default = 0f0
         "--optimiser-rule", "--opt"
             arg_type = Symbol
-            default = :AdamW
+            default = :Adam
         "--optimiser-hyperparams", "--opt-params"
             arg_type = NamedTuple
             default = (;)
