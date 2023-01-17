@@ -47,9 +47,7 @@ function plot_learning_curve(
         yscale = log10,
         yticks = LogTicks(IntegerTicks()),
         yaxisposition = :right,
-        yminorticksvisible = true,
-        yminorgridvisible = true,
-        yminorticks = IntervalsBetween(8),
+        ygridvisible = false,
     )
 
     ax2 = Axis(
@@ -57,7 +55,10 @@ function plot_learning_curve(
         ylabel = "training loss",
         yscale = log10,
         yticks = LogTicks(IntegerTicks()),
-        ygridvisible = false,
+        ygridvisible = true,
+        yminorticksvisible = true,
+        yminorgridvisible = true,
+        yminorticks = IntervalsBetween(8),
     )
     hidespines!(ax2)
     hidexdecorations!(ax2)
