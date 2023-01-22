@@ -1,5 +1,13 @@
 function save_learning_curve(learning_curve, model_id; dir = "learning_curves")
-    col_names = [["epoch", "steps", "learning_rate", "train_loss", "val_loss", "duration"]]
+    col_names = [[
+        "epoch",
+        "steps",
+        "learning_rate",
+        "train_loss",
+        "val_loss",
+        "valid_time",
+        "duration",
+    ]]
     mkpath(dir)
     path = joinpath(dir, model_id * ".csv")
     open(path, "w") do io
@@ -19,7 +27,8 @@ end
 
 function plot_learning_curve(filepath::String)
     data, header = readdlm(filepath, ','; header = true)
-    epoch, steps, learning_rate, training_loss, validation_loss, duration = eachcol(data)
+    epoch, steps, learning_rate, training_loss, validation_loss, valid_time, duration =
+        eachcol(data)
     return plot_learning_curve(
         epoch,
         steps,
