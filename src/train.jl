@@ -24,7 +24,7 @@ function train!(
     θ_min = copy(θ)
     min_val_loss = Inf32
     min_val_epoch = 0
-    min_val_valid_time = NaN32
+    min_val_valid_time = zero(T)
     early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
 
     # Keep track of training loss, validation loss, and duration per epoch
