@@ -106,7 +106,7 @@ function train!(
                     get_learning_rate(optimiser),
                     mean(training_losses),
                     val_loss,
-                    valid_time,
+                    val_valid_time,
                     epoch_duration,
                 ],
             )
