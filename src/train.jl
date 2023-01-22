@@ -112,7 +112,7 @@ function train!(
 
             early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
 
-            if val_loss < min_val_loss
+            if val_valid_time > min_val_valid_time
                 θ_min = copy(θ)
                 min_val_epoch = epoch
                 min_val_loss = val_loss
