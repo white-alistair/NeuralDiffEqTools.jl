@@ -12,6 +12,7 @@ function train!(
     abstol::T = 1.0f-6,
     maxiters = 10_000,
     valid_error_threshold::T = 4.0f-1,
+    stopping_criterion::Symbol,  # :val_loss or :valid_time
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     verbose = false,
@@ -23,10 +24,10 @@ function train!(
 
     # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)
-    min_val_loss = Inf32
-    min_val_epoch = 0
-    min_val_valid_time = zero(T)
-    early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
+    early_stopping_val_loss = Inf32
+    early_stopping_valid_time = zero(T)
+    early_stopping_epoch = 0
+    # early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = early_stopping_val_loss)
 
     # Keep track of training loss, validation loss, and duration per epoch
     learning_curve = Array{Array{Float32}}(undef, 0)
@@ -80,7 +81,7 @@ function train!(
             end
             epoch_duration = time() - epoch_start_time
 
-            val_loss, val_valid_time = evaluate(
+            val_loss, valid_time = evaluate(
                 prob,
                 θ,
                 val_data,
@@ -96,7 +97,7 @@ function train!(
             #! format: off
             @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Average training loss = %.2e\n" name epoch mean(training_losses)
             @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Validation loss = %.2e\n" name epoch val_loss
-            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Valid time = %.1f seconds\n" name epoch val_valid_time
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Valid time = %.1f seconds\n" name epoch valid_time
             @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Epoch duration = %.1f seconds\n" name epoch epoch_duration
             #! format: on
 
@@ -108,18 +109,18 @@ function train!(
                     get_learning_rate(optimiser),
                     mean(training_losses),
                     val_loss,
-                    val_valid_time,
+                    valid_time,
                     epoch_duration,
                 ],
             )
 
-            early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
-
-            if val_valid_time > min_val_valid_time
+            # early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
+            if (stopping_criterion == :val_loss && val_loss < early_stopping_val_loss) ||
+               (stopping_criterion == :valid_time && valid_time > early_stopping_valid_time)
                 θ_min = copy(θ)
-                min_val_epoch = epoch
-                min_val_loss = val_loss
-                min_val_valid_time = val_valid_time
+                early_stopping_epoch = epoch
+                early_stopping_val_loss = val_loss
+                early_stopping_valid_time = valid_time
             end
 
             if (time() - training_start_time) > time_limit
@@ -158,8 +159,8 @@ function train!(
     )
 
     @info "Training complete."
-    @info @sprintf "Minimum validation loss = %.2e\n" min_val_loss
-    @info @sprintf "Validation valid time = %.1f seconds\n" min_val_valid_time
+    @info @sprintf "Early stopping validation loss = %.2e\n" early_stopping_val_loss
+    @info @sprintf "Early stopping valid time = %.1f seconds\n" early_stopping_valid_time
     @info @sprintf "Test loss = %.2e\n" test_loss
     @info @sprintf "Test valid time = %.1f seconds\n" test_valid_time
     @info @sprintf "Training duration = %.1f seconds\n" training_duration
@@ -167,9 +168,9 @@ function train!(
     return training_duration,
     learning_curve,
     epoch,
-    min_val_epoch,
-    min_val_loss,
-    min_val_valid_time,
+    early_stopping_epoch,
+    early_stopping_val_loss,
+    early_stopping_valid_time,
     test_loss,
     test_valid_time
 end
@@ -193,6 +194,7 @@ function train!(
     regularisation_param::T = 0.0f0,
     # Validation and early Stopping
     valid_error_threshold::T = 4.0f-1,
+    stopping_criterion::Symbol,  # :val_loss or :valid_time
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     # I/O
@@ -217,6 +219,7 @@ function train!(
         abstol,
         maxiters,
         valid_error_threshold,
+        stopping_criterion,
         patience,
         time_limit,
         verbose,

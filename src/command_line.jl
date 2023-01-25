@@ -61,6 +61,9 @@ function get_common_settings()
         "--optimiser-hyperparams", "--opt-params"
             arg_type = NamedTuple
             default = (;)
+        "--stopping-criterion"
+            arg_type = Symbol
+            default = :valid_time
         "--patience"
             arg_type = Int
             default = typemax(Int)  # ~Inf
