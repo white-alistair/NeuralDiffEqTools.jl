@@ -11,6 +11,7 @@ function train!(
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
+    valid_error_threshold::T = 4.0f-1,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     verbose = false,
@@ -87,6 +88,7 @@ function train!(
                 solver,
                 reltol,
                 abstol;
+                valid_error_threshold,
                 maxiters,
                 show_plot,
             )
@@ -142,8 +144,18 @@ function train!(
 
     # Evaluate trained model
     θ .= θ_min
-    test_loss, test_valid_time =
-        evaluate(prob, θ, test_data, loss, solver, reltol, abstol; maxiters, show_plot)
+    test_loss, test_valid_time = evaluate(
+        prob,
+        θ,
+        test_data,
+        loss,
+        solver,
+        reltol,
+        abstol;
+        valid_error_threshold,
+        maxiters,
+        show_plot,
+    )
 
     @info "Training complete."
     @info @sprintf "Minimum validation loss = %.2e\n" min_val_loss
@@ -179,7 +191,8 @@ function train!(
     # Regularisation
     norm = L2,
     regularisation_param::T = 0.0f0,
-    # Early Stopping
+    # Validation and early Stopping
+    valid_error_threshold::T = 4.0f-1,
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     # I/O
@@ -203,6 +216,7 @@ function train!(
         reltol,
         abstol,
         maxiters,
+        valid_error_threshold,
         patience,
         time_limit,
         verbose,
