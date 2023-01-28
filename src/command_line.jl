@@ -64,6 +64,9 @@ function get_common_settings()
         "--stopping-criterion"
             arg_type = Symbol
             default = :valid_time
+        "--valid-error-threshold", "--valid-error"
+            arg_type = Float32
+            default = 4f-1
         "--patience"
             arg_type = Int
             default = typemax(Int)  # ~Inf
