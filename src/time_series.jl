@@ -27,7 +27,7 @@ function chunk(time_series::TimeSeries{T}, chunk_size::Int) where {T}
     N = size(trajectory)[end]
     
     chunks = TimeSeries{T}[]
-    for i in 1:chunk_size:N
+    for i in 1:(chunk_size-1):N
         time_chunk = times[i:min(i + chunk_size - 1, N)]
         traj_chunk = selectdim(trajectory, last_dim, i:min(i + chunk_size - 1, N)) 
         push!(chunks, TimeSeries{T}(time_chunk, traj_chunk))

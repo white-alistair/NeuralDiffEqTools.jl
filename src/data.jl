@@ -1,56 +1,37 @@
-struct TimeSeries{T<:AbstractFloat}
-    trajectory::Matrix{T}
-    times::Vector{T}
-    TimeSeries{T}(trajectory, times) where {T<:AbstractFloat} =
-        size(trajectory)[end] != size(times)[end] ?
-        throw(DimensionMismatch("number of times and observations do not match")) :
-        new(trajectory, times)
-end
+abstract type AbstractData{T} end
 
-function TimeSeries(trajectory::Matrix{T}, times::Vector{T}) where {T<:AbstractFloat}
-    TimeSeries{T}(trajectory, times)
-end
-
-function TimeSeries{T}(sol::OrdinaryDiffEq.ODESolution) where {T<:AbstractFloat}
-    return TimeSeries{T}(Array(sol), sol.t)
-end
-
-Base.getindex(ode_solution::TimeSeries, i::Int) = ode_solution.trajectory[:, i]
-Base.getindex(ode_solution::TimeSeries, I::UnitRange) = ode_solution.trajectory[:, I]
-Base.firstindex(ode_solution::TimeSeries) = 1
-Base.lastindex(ode_solution::TimeSeries) = size(ode_solution.trajectory)[2]
-Base.length(ode_solution::TimeSeries) = length(ode_solution.times)
-
-struct Data{T<:AbstractFloat}
+struct TrainValidTestSplit{T} <: AbstractData{T}
     train_data::TimeSeries{T}
     val_data::Array{TimeSeries{T}}
     test_data::Array{TimeSeries{T}}
 end
 
-# DATA LOADER
-struct DataLoader{T<:AbstractFloat}
-    data::TimeSeries{T}
-    step_size::Int
-    shuffle::Bool
-end
-DataLoader(data::TimeSeries{T}, step_size::Int) where T = DataLoader{T}(data, step_size, true)
+# function chunk(array::Array, chunk_size::Int)
+#     last_dim = ndims(array)
+#     N = size(array)[end]
+#     return [
+#         selectdim(array, last_dim, i:min(i + chunk_size - 1, N)) for i = 1:chunk_size:N
+#     ]
+# end
 
-Base.length(dl::DataLoader) = floor(Int32, length(dl.data) / dl.step_size)
-Base.eltype(::Type{DataLoader{T}}) where {T} = Tuple{Vector{T}, Matrix{T}}
+function TrainValidTestSplit(
+    time_series::TimeSeries{T},
+    n_valid_sets::Int,
+    valid_seconds::T;
+    Δt::T,
+) where {T}
+    (; times, trajectory) = time_series
 
-function Base.iterate(dl::DataLoader)
-    N = length(dl.data)
-    start_indexes = collect(1:dl.step_size:N-dl.step_size)
-    if dl.shuffle
-        shuffle!(start_indexes)
-    end
-    iterate(dl, start_indexes)
-end
+    total_valid_seconds = n_valid_sets * valid_seconds
+    total_valid_obs = Int(total_valid_seconds / Δt) + 1
 
-function Base.iterate(dl::DataLoader, start_indexes)
-    isempty(start_indexes) && return nothing
-    start_index = pop!(start_indexes)
-    times = dl.data.times[start_index:start_index + dl.step_size]
-    trajectory = dl.data.trajectory[:, start_index:start_index + dl.step_size]
-    return ((times, trajectory), start_indexes)
+    train_data =
+        TimeSeries{T}(times[1:end-total_valid_obs+1], trajectory[:, 1:end-total_valid_obs+1])
+
+    valid_data =
+        TimeSeries{T}(times[end-total_valid_obs+1:end], trajectory[:, end-total_valid_obs+1:end])
+    
+    chunked_valid_data = chunk(valid_data, Int(valid_seconds / Δt) + 1)
+
+    return TrainValidTestSplit{T}(train_data, chunked_valid_data, [])
 end

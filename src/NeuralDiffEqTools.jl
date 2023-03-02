@@ -15,11 +15,13 @@ using OrdinaryDiffEq,
     JLD2,
     CairoMakie
 
+include("time_series.jl")
 include("data.jl")
 include("prob.jl")
 include("neural_nets.jl")
 include("optimisers.jl")
 include("curriculum.jl")
+# include("validation.jl")
 include("adjoints.jl")
 include("losses.jl")
 include("predict.jl")
@@ -29,5 +31,6 @@ include("train.jl")
 include("io.jl")
 include("learning_curves.jl")
 include("command_line.jl")
+
 
 end
