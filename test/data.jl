@@ -36,4 +36,16 @@
         @test test_data[3].times[1] == 95.0
         @test test_data[3].times[end] == 100.0
     end
+
+    @testset "KL Folds" begin
+        Δt = 0.01
+        times = collect(0.0:Δt:100.0)
+        tr = rand(2, size(times)[1])
+        time_series = NeuralDiffEqTools.TimeSeries{Float64}(times, tr)
+
+        kl_folds =
+            NeuralDiffEqTools.KLFolds(time_series, 10, 2)
+
+        @test size(kl_folds.folds)[1] == 10
+    end
 end

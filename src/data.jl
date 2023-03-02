@@ -49,22 +49,38 @@ function TrainValidTestSplit(
     test_obs = Int(total_test_seconds / Δt) + 1
 
     test_index = size(times)[1] - test_obs + 1
-    valid_index = test_index - valid_obs +1
+    valid_index = test_index - valid_obs + 1
 
     train_data = TimeSeries{T}(times[1:valid_index], trajectory[:, 1:valid_index])
 
-    valid_data = TimeSeries{T}(
-        times[valid_index:test_index],
-        trajectory[:, valid_index:test_index],
-    )
+    valid_data =
+        TimeSeries{T}(times[valid_index:test_index], trajectory[:, valid_index:test_index])
 
-    test_data = TimeSeries{T}(
-        times[test_index:end],
-        trajectory[:, test_index:end],
-    )
+    test_data = TimeSeries{T}(times[test_index:end], trajectory[:, test_index:end])
 
     chunked_valid_data = chunk(valid_data, Int(valid_seconds / Δt) + 1)
     chunked_test_data = chunk(test_data, Int(test_seconds / Δt) + 1)
 
     return TrainValidTestSplit{T}(train_data, chunked_valid_data, chunked_test_data)
+end
+
+struct KLFolds{T} <: AbstractData{T}
+    k::Int
+    l::Int
+    folds::Vector{TimeSeries{T}}
+end
+
+function KLFolds(time_series::TimeSeries{T}, k::Int, l::Int; shuffle = true) where {T}
+    fold_obs = Int(1 + (length(time_series) - 1) / k)
+    folds = chunk(time_series, fold_obs)
+    if shuffle
+        shuffle!(folds)
+    end
+    return KLFolds{T}(k, l, folds)
+end
+
+function Base.iterate(kl::KLFolds)
+end
+
+function Base.iterate(kl::KLFolds, state)
 end
