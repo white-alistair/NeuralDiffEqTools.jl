@@ -79,8 +79,20 @@ function KLFolds(time_series::TimeSeries{T}, k::Int, l::Int; shuffle = true) whe
     return KLFolds{T}(k, l, folds)
 end
 
-function Base.iterate(kl::KLFolds)
+function Base.iterate(kl_folds::KLFolds)
+    start_index = 1
+    return iterate(kl_folds, start_index)
 end
 
-function Base.iterate(kl::KLFolds, state)
+function Base.iterate(kl_folds::KLFolds, start_index)
+    (; k, l, folds) = kl_folds
+    if (start_index + l - 1) > k
+        validation_folds = folds[1:l]
+        training_folds = folds[1+l:end]
+    else
+        validation_folds = folds[start_index:start_index+l-1]
+        training_folds = [folds[1:start_index-1]; folds[start_index+l:end]]
+    end
+    start_index += l
+    return (training_folds, validation_folds), start_index
 end
