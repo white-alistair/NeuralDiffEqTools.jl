@@ -68,15 +68,30 @@ struct KLFolds{T} <: AbstractData{T}
     k::Int
     l::Int
     folds::Vector{TimeSeries{T}}
+    test_folds::Vector{TimeSeries{T}}
 end
 
-function KLFolds(time_series::TimeSeries{T}, k::Int, l::Int; shuffle = true) where {T}
+function KLFolds(
+    time_series::TimeSeries{T},
+    k::Int,
+    l::Int,
+    n_test_folds::Int = 0;
+    shuffle = true,
+) where {T}
     fold_obs = Int(1 + (length(time_series) - 1) / k)
     folds = chunk(time_series, fold_obs)
+    
     if shuffle
         shuffle!(folds)
     end
-    return KLFolds{T}(k, l, folds)
+
+    if n_test_folds > 0
+        folds, test_folds = folds[1:end-n_test_folds], folds[end-n_test_folds+1:end]
+    else
+        test_folds = []
+    end
+
+    return KLFolds{T}(k, l, folds, test_folds)
 end
 
 function Base.iterate(kl_folds::KLFolds)
