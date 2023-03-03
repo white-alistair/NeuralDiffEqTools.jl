@@ -1,7 +1,3 @@
-using NeuralDiffEqTools
-using Test
+using TestItemRunner
 
-@testset "NeuralDiffEqTools.jl" begin
-    include("data.jl")
-    include("valid_time.jl")
-end
+@run_package_tests
