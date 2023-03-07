@@ -94,20 +94,37 @@ function KLFolds(
     return KLFolds{T}(k, l, folds, test_folds)
 end
 
-function Base.iterate(kl_folds::KLFolds)
-    start_index = 1
-    return iterate(kl_folds, start_index)
+struct KLCycleIterator{T}
+    kl_folds::KLFolds{T}
+    epochs::Int
 end
 
-function Base.iterate(kl_folds::KLFolds, start_index)
+function kl_cycle(kl_folds::KLFolds, epochs::Int)
+    return KLCycleIterator(kl_folds, epochs)
+end
+
+function Base.iterate(itr::KLCycleIterator)
+    start_index = 1
+    epoch = 1
+    return iterate(itr, (start_index, epoch))
+end
+
+function Base.iterate(itr::KLCycleIterator, (start_index, epoch))
+    (; kl_folds, epochs) = itr
     (; k, l, folds) = kl_folds
+
     if (start_index + l - 1) > k
-        validation_folds = folds[1:l]
-        training_folds = folds[1+l:end]
-    else
-        validation_folds = folds[start_index:start_index+l-1]
-        training_folds = [folds[1:start_index-1]; folds[start_index+l:end]]
+        start_index = 1
+        epoch += 1
     end
+
+    if epoch > epochs
+        return nothing
+    end
+
+    validation_folds = folds[start_index:start_index+l-1]
+    training_folds = [folds[1:start_index-1]; folds[start_index+l:end]]
     start_index += l
-    return (training_folds, validation_folds), start_index
+    
+    return (training_folds, validation_folds), (start_index, epoch)
 end

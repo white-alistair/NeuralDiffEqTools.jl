@@ -65,30 +65,46 @@ end
     @test size(kl_folds.folds) == (k - n_test_folds,)
 end
 
-@testitem "KL Folds iteration interface" begin
+@testitem "KL Folds cycle iterator" begin
     Δt = 0.1
-    times = collect(0.0:Δt:1.2)
+    times = collect(0.0:Δt:0.8)
     tr = rand(2, size(times)[1])
     time_series = NeuralDiffEqTools.TimeSeries{Float64}(times, tr)
 
-    k = 6
+    k = 4
     l = 2
     kl_folds = NeuralDiffEqTools.KLFolds(time_series, k, l; shuffle = false)
 
-    (training_folds, validation_folds), start_index = iterate(kl_folds)
+    epochs = 2
+    itr = NeuralDiffEqTools.kl_cycle(kl_folds, epochs)
+
+    (training_folds, validation_folds), state = iterate(itr)
     @test size(validation_folds) == (l,)
     @test size(training_folds) == (k - l,)
     @test validation_folds[1].times ≈ times[1:3]
+    @test validation_folds[1].trajectory ≈ tr[:, 1:3]
     @test validation_folds[2].times ≈ times[3:5]
-    (training_folds, validation_folds), start_index = iterate(kl_folds, start_index)
+    @test validation_folds[2].trajectory ≈ tr[:, 3:5]
+    (training_folds, validation_folds), state = iterate(itr, state)
     @test size(validation_folds) == (l,)
     @test size(training_folds) == (k - l,)
     @test validation_folds[1].times == times[5:7]
+    @test validation_folds[1].trajectory ≈ tr[:, 5:7]
     @test validation_folds[2].times == times[7:9]
-    (training_folds, validation_folds), start_index = iterate(kl_folds, start_index)
-    @test validation_folds[1].times == times[9:11]
-    @test validation_folds[2].times == times[11:13]
-    (training_folds, validation_folds), start_index = iterate(kl_folds, start_index)
+    @test validation_folds[2].trajectory ≈ tr[:, 7:9]
+    (training_folds, validation_folds), state = iterate(itr, state)
+    @test size(validation_folds) == (l,)
+    @test size(training_folds) == (k - l,)
     @test validation_folds[1].times == times[1:3]
+    @test validation_folds[1].trajectory ≈ tr[:, 1:3]
     @test validation_folds[2].times == times[3:5]
+    @test validation_folds[2].trajectory ≈ tr[:, 3:5]
+    (training_folds, validation_folds), state = iterate(itr, state)
+    @test size(validation_folds) == (l,)
+    @test size(training_folds) == (k - l,)
+    @test validation_folds[1].times == times[5:7]
+    @test validation_folds[1].trajectory ≈ tr[:, 5:7]
+    @test validation_folds[2].times == times[7:9]
+    @test validation_folds[2].trajectory ≈ tr[:, 7:9]
+    @test iterate(itr, state) === nothing  # Finished
 end
