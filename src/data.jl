@@ -123,7 +123,7 @@ function Base.iterate(itr::KLCycleIterator, (start_index, epoch))
     end
 
     validation_folds = @view folds[start_index:start_index+l-1]
-    training_folds = [@view folds[1:start_index-1]; @view folds[start_index+l:end]]
+    training_folds = @views [folds[1:start_index-1]; folds[start_index+l:end]]
     start_index += l
     
     return (training_folds, validation_folds), (start_index, epoch)
