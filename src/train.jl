@@ -113,10 +113,6 @@ function train!(
                 ],
             )
 
-            if epoch >= epochs
-                break
-            end
-
             # early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
             if (stopping_criterion == :val_loss && val_loss < early_stopping_val_loss) ||
                (stopping_criterion == :valid_time && valid_time > early_stopping_valid_time)
@@ -200,7 +196,7 @@ function train!(
 ) where {T<:AbstractFloat}
     @info "Beginning training..."
 
-    (; train_data, val_data, test_data) = data
+    (; train_data, valid_data, test_data) = data
 
     # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)
@@ -218,8 +214,6 @@ function train!(
         (; name, steps, epochs, optimiser) = lesson
         set_initial_learning_rate!(optimiser)
 
-        data_loader = DataLoader(train_data, steps)
-
         lesson_start_time = time()
         for _ = 1:epochs
             epoch += 1
@@ -231,7 +225,7 @@ function train!(
 
             iter = 0
             epoch_start_time = time()
-            for (times, target_trajectory) in data_loader
+            for (times, target_trajectory) in MultipleShooting(train_data, steps)
                 iter += 1
                 tspan = (times[1], times[end])
                 u0 = target_trajectory[:, 1]
@@ -258,15 +252,13 @@ function train!(
                 if verbose
                     @info @sprintf "[lesson = %-20.20s] [epoch = %04i] [iter = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" name epoch iter tspan[1] tspan[2] training_loss
                 end
-
-                @info Base.summarysize(optimiser.state)
             end
             epoch_duration = time() - epoch_start_time
 
             val_loss, valid_time = evaluate(
                 prob,
                 θ,
-                val_data,
+                valid_data,
                 loss,
                 solver,
                 reltol,
