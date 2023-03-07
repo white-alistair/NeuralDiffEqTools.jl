@@ -23,6 +23,7 @@ function get_valid_time(
     times::AbstractVector{T};
     valid_error_threshold::T,
 ) where {T<:AbstractFloat}
+    times .-= times[1]
     valid_error_index = findfirst(error -> error >= valid_error_threshold, normalised_error)
     if isnothing(valid_error_index)
         valid_time = times[end]
