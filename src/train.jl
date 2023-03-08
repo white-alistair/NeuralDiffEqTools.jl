@@ -394,7 +394,7 @@ function train!(
     show_plot = false,
 ) where {T<:AbstractFloat}
     # 1. Set up the loss function
-    loss = (pred, target, θ) -> MSE(pred, target)#  + regularisation_param * penalty(θ)
+    loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * penalty(θ)
 
     # 2. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     adjoint = get_adjoint(sensealg, vjp, checkpointing)

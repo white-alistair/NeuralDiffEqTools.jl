@@ -7,6 +7,7 @@ using OrdinaryDiffEq,
     Zygote,
     Optimisers,
     ArgParse,
+    LinearAlgebra,
     Statistics,
     Random,
     Printf,
@@ -22,7 +23,6 @@ include("prob.jl")
 include("neural_nets.jl")
 include("optimisers.jl")
 include("curriculum.jl")
-# include("validation.jl")
 include("adjoints.jl")
 include("losses.jl")
 include("predict.jl")
