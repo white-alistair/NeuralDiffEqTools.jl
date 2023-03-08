@@ -23,7 +23,7 @@ function evaluate(
         return T(NaN), T(NaN)
     end
 
-    loss = loss_function(predicted_trajectory, target_trajectory, θ)
+    loss = loss_function(predicted_trajectory, target_trajectory)
     valid_time = get_valid_time(
         target_trajectory,
         predicted_trajectory,

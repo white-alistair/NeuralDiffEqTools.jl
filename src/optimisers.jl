@@ -63,11 +63,7 @@ function LinearDecayOptimiser(
 ) where {T}
     step = (initial_learning_rate - final_learning_rate) / (epochs - 1)
 
-    return LinearDecayOptimiser{typeof(state),Float32}(
-        state,
-        initial_learning_rate,
-        step,
-    )
+    return LinearDecayOptimiser{typeof(state),Float32}(state, initial_learning_rate, step)
 end
 
 function update_learning_rate!(opt::LinearDecayOptimiser)
@@ -79,7 +75,8 @@ function update_learning_rate!(opt::LinearDecayOptimiser)
 end
 
 # Linear Warmup
-struct LinearWarmupOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <: AbstractScheduledOptimiser{T}
+struct LinearWarmupOptimiser{O<:Optimisers.Leaf,T<:AbstractFloat} <:
+       AbstractScheduledOptimiser{T}
     state::O
     initial_learning_rate::T
     step::T
@@ -93,11 +90,7 @@ function LinearWarmupOptimiser(
 ) where {T}
     step = (final_learning_rate - initial_learning_rate) / (epochs - 1)
 
-    return LinearWarmupOptimiser{typeof(state),Float32}(
-        state,
-        initial_learning_rate,
-        step,
-    )
+    return LinearWarmupOptimiser{typeof(state),Float32}(state, initial_learning_rate, step)
 end
 
 function update_learning_rate!(opt::LinearWarmupOptimiser)
@@ -133,7 +126,7 @@ function get_learning_rate(rule::Optimisers.AbstractRule)
 end
 
 function get_learning_rate(rule::Optimisers.OptimiserChain)
-    return rule.opts[1].eta
+    return rule.opts[1].eta  # For AdamW
 end
 
 function setup_optimiser(rule_type, opt_hyperparameters, θ)

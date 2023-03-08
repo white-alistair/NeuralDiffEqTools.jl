@@ -34,7 +34,7 @@ function get_common_settings()
             arg_type = Int
             default = 1
 
-        # Data args
+        # Validation args
         "--validation"
             arg_type = Symbol
             required = true
@@ -73,12 +73,6 @@ function get_common_settings()
         "--curriculum-file"
             arg_type = String
             default = "curriculum.toml"
-        "--norm"
-            arg_type = Function
-            default = L2
-        "--penalty"
-            arg_type = Float32
-            default = 0f0
         "--optimiser-rule", "--opt"
             arg_type = Symbol
             default = :Adam

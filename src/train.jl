@@ -2,17 +2,17 @@ function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
     data::KLFolds{T},
-    curriculum::Curriculum{T},
-    loss::Function,
+    curriculum::Curriculum{T};
+    loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ReverseDiffVJP(true),
-    );
+    ),
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
     valid_error_threshold::T = 4.0f-1,
-    stopping_criterion::Symbol,  # :val_loss or :valid_time
+    stopping_criterion::Symbol = :valid_time,  # :val_loss or :valid_time
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     verbose = false,
@@ -71,7 +71,7 @@ function train!(
                             maxiters,
                             sensealg = adjoint,
                         )
-                        return loss(predicted_trajectory, target_trajectory, θ)
+                        return loss(predicted_trajectory, target_trajectory)
                     end
 
                     Optimisers.update!(optimiser, θ, gradients)
@@ -196,17 +196,17 @@ function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
     data::TrainValidTestSplit{T},
-    curriculum::Curriculum{T},
-    loss::Function,
+    curriculum::Curriculum{T};
+    loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ReverseDiffVJP(true),
-    );
+    ),
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
     maxiters = 10_000,
     valid_error_threshold::T = 4.0f-1,
-    stopping_criterion::Symbol,  # :val_loss or :valid_time
+    stopping_criterion::Symbol = :valid_time,  # :val_loss or :valid_time
     patience = Inf,
     time_limit = 23 * 60 * 60.0f0,
     verbose = false,
@@ -260,7 +260,7 @@ function train!(
                         maxiters,
                         sensealg = adjoint,
                     )
-                    return loss(predicted_trajectory, target_trajectory, θ)
+                    return loss(predicted_trajectory, target_trajectory)
                 end
 
                 Optimisers.update!(optimiser, θ, gradients)
@@ -365,56 +365,4 @@ function train!(
     early_stopping_valid_time,
     test_loss,
     test_valid_time
-end
-
-function train!(
-    θ::Vector{T},
-    prob::SciMLBase.AbstractDEProblem,
-    data::AbstractData{T},
-    curriculum::Curriculum{T};
-    # Solver
-    solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
-    reltol::T = 1.0f-6,
-    abstol::T = 1.0f-6,
-    maxiters = 10_000,
-    # Adjoint
-    sensealg::Union{Symbol,Nothing} = :BacksolveAdjoint,
-    vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
-    checkpointing::Bool = false,
-    # Regularisation
-    norm = L2,
-    penalty::T = 0.0f0,
-    # Validation and early Stopping
-    valid_error_threshold::T = 4.0f-1,
-    stopping_criterion::Symbol,  # :val_loss or :valid_time
-    patience = Inf,
-    time_limit = 23 * 60 * 60.0f0,
-    # I/O
-    verbose = false,
-    show_plot = false,
-) where {T<:AbstractFloat}
-    # 1. Set up the loss function
-    loss = (pred, target, θ) -> MSE(pred, target) + penalty * norm(θ)
-
-    # 2. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
-    adjoint = get_adjoint(sensealg, vjp, checkpointing)
-
-    return train!(
-        θ,
-        prob,
-        data,
-        curriculum,
-        loss,
-        solver,
-        adjoint;
-        reltol,
-        abstol,
-        maxiters,
-        valid_error_threshold,
-        stopping_criterion,
-        patience,
-        time_limit,
-        verbose,
-        show_plot,
-    )
 end
