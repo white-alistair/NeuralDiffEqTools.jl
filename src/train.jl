@@ -18,7 +18,11 @@ function train!(
     verbose = false,
     show_plot = false,
 ) where {T<:AbstractFloat}
+    (; k, l) = data
+    kl_period = Int(k / l)  # Number of epochs for one kl-fold cycle, i.e. each fold is used once for validation
+
     @info "Beginning training..."
+    @info @sprintf "Applying kl-fold cross validation with k = %i, l = %i" k l
 
     # Keep track of the minimum validation loss and parameters for early stopping
     θ_min = copy(θ)
@@ -31,6 +35,8 @@ function train!(
     learning_curve = Array{Array{Float32}}(undef, 0)
 
     epoch = 0
+    val_losses = Float32[]
+    valid_times = Float32[]
     training_start_time = time()
     for lesson in curriculum.lessons
         lesson_start_time = time()
@@ -77,7 +83,7 @@ function train!(
                     end
                 end
             end
-            
+
             val_loss, valid_time = evaluate(
                 prob,
                 θ,
@@ -90,13 +96,20 @@ function train!(
                 maxiters,
                 show_plot,
             )
-            
+            push!(val_losses, val_loss)
+            push!(valid_times, valid_time)
+
+            # Compute the moving average over the last kl_period epochs
+            moving_avg_index = max(1, length(val_losses) - kl_period + 1)
+            moving_avg_val_loss = mean(val_losses[moving_avg_index:end])
+            moving_avg_valid_time = mean(valid_times[moving_avg_index:end])
+
             epoch_duration = time() - epoch_start_time
 
             #! format: off
             @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Average training loss = %.2e\n" name epoch mean(training_losses)
-            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Validation loss = %.2e\n" name epoch val_loss
-            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Valid time = %.1f seconds\n" name epoch valid_time
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Moving average validation loss = %.2e\n" name epoch moving_avg_val_loss
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Moving average valid time = %.1f seconds\n" name epoch moving_avg_valid_time
             @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Epoch duration = %.1f seconds\n" name epoch epoch_duration
             #! format: on
 
@@ -107,19 +120,24 @@ function train!(
                     steps,
                     get_learning_rate(optimiser),
                     mean(training_losses),
-                    val_loss,
-                    valid_time,
+                    moving_avg_val_loss,
+                    moving_avg_valid_time,
                     epoch_duration,
                 ],
             )
 
             # early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
-            if (stopping_criterion == :val_loss && val_loss < early_stopping_val_loss) ||
-               (stopping_criterion == :valid_time && valid_time > early_stopping_valid_time)
+            if (
+                stopping_criterion == :val_loss &&
+                moving_avg_val_loss < early_stopping_val_loss
+            ) || (
+                stopping_criterion == :valid_time &&
+                moving_avg_valid_time > early_stopping_valid_time
+            )
                 θ_min = copy(θ)
                 early_stopping_epoch = epoch
-                early_stopping_val_loss = val_loss
-                early_stopping_valid_time = valid_time
+                early_stopping_val_loss = moving_avg_val_loss
+                early_stopping_valid_time = moving_avg_valid_time
             end
 
             if (time() - training_start_time) > time_limit
