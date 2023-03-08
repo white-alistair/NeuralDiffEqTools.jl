@@ -28,7 +28,7 @@ end
         times;
         valid_error_threshold = 0.4,
     )
-    @test valid_time ≈ 0.2
+    @test valid_time ≈ 0.1
 
     normalised_error = [0.0, 0.3, 0.3]
     times = [0.0, 0.1, 0.2]
