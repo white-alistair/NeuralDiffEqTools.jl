@@ -382,8 +382,8 @@ function train!(
     vjp::Union{Symbol,Nothing} = :ReverseDiffVJP,
     checkpointing::Bool = false,
     # Regularisation
-    penalty = L2,
-    regularisation_param::T = 0.0f0,
+    norm = L2,
+    penalty::T = 0.0f0,
     # Validation and early Stopping
     valid_error_threshold::T = 4.0f-1,
     stopping_criterion::Symbol,  # :val_loss or :valid_time
@@ -394,7 +394,7 @@ function train!(
     show_plot = false,
 ) where {T<:AbstractFloat}
     # 1. Set up the loss function
-    loss = (pred, target, θ) -> MSE(pred, target) + regularisation_param * penalty(θ)
+    loss = (pred, target, θ) -> MSE(pred, target) + penalty * norm(θ)
 
     # 2. Set up the adjoint sensitivity algorithm for computing gradients of the ODE solve
     adjoint = get_adjoint(sensealg, vjp, checkpointing)

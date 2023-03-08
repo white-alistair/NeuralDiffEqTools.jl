@@ -52,7 +52,7 @@ function get_common_settings()
         "--norm"
             arg_type = Function
             default = L2
-        "--regularisation-param", "--reg-param"
+        "--penalty"
             arg_type = Float32
             default = 0f0
         "--optimiser-rule", "--opt"
