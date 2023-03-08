@@ -78,7 +78,8 @@ function KLFolds(
     n_test_folds::Int = 0;
     shuffle = true,
 ) where {T}
-    fold_obs = ceil(Int, (1 + (length(time_series) - 1) / k))
+    total_folds = k + n_test_folds
+    fold_obs = ceil(Int, length(time_series) / total_folds)
     folds = chunk(time_series, fold_obs)
 
     if shuffle

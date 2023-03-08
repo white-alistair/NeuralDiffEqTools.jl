@@ -37,8 +37,8 @@ end
 end
 
 @testitem "KL Folds no test folds" begin
-    Δt = 0.01
-    times = collect(0.0:Δt:100.0)
+    Δt = 0.1
+    times = collect(0.0:Δt:10.0)
     tr = rand(2, size(times)[1])
     time_series = NeuralDiffEqTools.TimeSeries{Float64}(times, tr)
 
@@ -50,19 +50,27 @@ end
 end
 
 @testitem "KL Folds with test folds" begin
-    Δt = 0.01
-    times = collect(0.0:Δt:100.0)
+    Δt = 0.1
+    times = collect(0.0:Δt:12.0)
     tr = rand(2, size(times)[1])
     time_series = NeuralDiffEqTools.TimeSeries{Float64}(times, tr)
 
+    n_test_folds = 2
     k = 10
     l = 2
-    n_test_folds = 2
     shuffle = true
     kl_folds = NeuralDiffEqTools.KLFolds(time_series, k, l, n_test_folds; shuffle)
 
     @test size(kl_folds.test_folds) == (n_test_folds,)
-    @test size(kl_folds.folds) == (k - n_test_folds,)
+    for fold in kl_folds.test_folds
+        @test size(fold.times) == (11,)
+        @test size(fold.trajectory) == (2, 11)        
+    end
+    @test size(kl_folds.folds) == (k,)
+    for fold in kl_folds.folds
+        @test size(fold.times) == (11,)
+        @test size(fold.trajectory) == (2, 11)        
+    end
 end
 
 @testitem "KL Folds cycle iterator" begin
