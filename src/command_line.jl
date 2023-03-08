@@ -34,6 +34,30 @@ function get_common_settings()
             arg_type = Int
             default = 1
 
+        # Data args
+        "--validation"
+            arg_type = Symbol
+            required = true
+        # Train-validation-test split
+        "--n-val-sets"
+            arg_type = Int
+        "--val-seconds"
+            arg_type = Float32
+        "--n-test-sets"
+            arg_type = Int
+        "--test-seconds"
+            arg_type = Float32
+        # KL-fold cross validation
+        "--k"
+            arg_type = Int
+        "--l"
+            arg_type = Int
+        "--n-test-folds"
+            arg_type = Int
+        "--shuffle"
+            arg_type = Bool
+            default = true
+
         # Neural net args
         "--hidden-layers", "--layers"
             arg_type = Int
