@@ -80,7 +80,7 @@ function KLFolds(
 ) where {T}
     fold_obs = ceil(Int, (1 + (length(time_series) - 1) / k))
     folds = chunk(time_series, fold_obs)
-    
+
     if shuffle
         shuffle!(folds)
     end
@@ -110,21 +110,22 @@ function Base.iterate(itr::KLCycleIterator)
 end
 
 function Base.iterate(itr::KLCycleIterator, (start_index, epoch))
-    (; kl_folds, epochs) = itr
-    (; k, l, folds) = kl_folds
-
-    if (start_index + l - 1) > k
-        start_index = 1
-        epoch += 1
-    end
-
-    if epoch > epochs
+    if epoch > itr.epochs
         return nothing
     end
 
-    validation_folds = @view folds[start_index:start_index+l-1]
-    training_folds = @views [folds[1:start_index-1]; folds[start_index+l:end]]
-    start_index += l
-    
+    (; k, l, folds) = itr.kl_folds
+
+    end_index = start_index + l - 1
+    if end_index > k
+        start_index = 1
+        end_index = l
+    end
+
+    validation_folds = @view folds[start_index:end_index]
+    training_folds = @views [folds[1:start_index-1]; folds[end_index+1:end]]
+    start_index = end_index + 1
+    epoch += 1
+
     return (training_folds, validation_folds), (start_index, epoch)
 end
