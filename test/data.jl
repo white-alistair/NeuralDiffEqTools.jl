@@ -75,7 +75,7 @@ end
     l = 2
     kl_folds = NeuralDiffEqTools.KLFolds(time_series, k, l; shuffle = false)
 
-    epochs = 2
+    epochs = 3
     itr = NeuralDiffEqTools.kl_cycle(kl_folds, epochs)
 
     (training_folds, validation_folds), state = iterate(itr)
@@ -92,5 +92,12 @@ end
     @test validation_folds[1].trajectory == tr[:, 5:7]
     @test validation_folds[2].times == times[7:9]
     @test validation_folds[2].trajectory == tr[:, 7:9]
+    (training_folds, validation_folds), state = iterate(itr, state)
+    @test size(validation_folds) == (l,)
+    @test size(training_folds) == (k - l,)
+    @test validation_folds[1].times == times[1:3]
+    @test validation_folds[1].trajectory == tr[:, 1:3]
+    @test validation_folds[2].times == times[3:5]
+    @test validation_folds[2].trajectory == tr[:, 3:5]
     @test iterate(itr, state) === nothing  # Finished
 end
