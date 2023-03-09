@@ -82,14 +82,14 @@ function KLFolds(
     fold_obs = ceil(Int, length(time_series) / total_folds)
     folds = chunk(time_series, fold_obs)
 
-    if shuffle
-        shuffle!(folds)
-    end
-
     if n_test_folds > 0
         folds, test_folds = folds[1:end-n_test_folds], folds[end-n_test_folds+1:end]
     else
         test_folds = []
+    end
+
+    if shuffle
+        shuffle!(folds)
     end
 
     return KLFolds{T}(k, l, folds, test_folds)
