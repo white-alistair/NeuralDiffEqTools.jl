@@ -40,6 +40,10 @@ function TrainValidTestSplit(
     test_seconds::T;
     Δt::T,
 ) where {T}
+    if n_test_sets == 0
+        return TrainValidTestSplit(time_series, n_valid_sets, valid_seconds; Δt)  # A bit hacky
+    end
+
     (; times, trajectory) = time_series
 
     total_valid_seconds = n_valid_sets * valid_seconds
