@@ -1,7 +1,7 @@
 function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
-    data::KLFolds{T},
+    data::KLFold{T},
     curriculum::Curriculum{T};
     loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),

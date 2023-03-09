@@ -64,14 +64,14 @@ function TrainValidTestSplit(
     return TrainValidTestSplit{T}(train_data, chunked_valid_data, chunked_test_data)
 end
 
-struct KLFolds{T} <: AbstractData{T}
+struct KLFold{T} <: AbstractData{T}
     k::Int
     l::Int
     folds::Vector{TimeSeries{T}}
     test_folds::Vector{TimeSeries{T}}
 end
 
-function KLFolds(
+function KLFold(
     time_series::TimeSeries{T},
     k::Int,
     l::Int,
@@ -92,15 +92,15 @@ function KLFolds(
         shuffle!(folds)
     end
 
-    return KLFolds{T}(k, l, folds, test_folds)
+    return KLFold{T}(k, l, folds, test_folds)
 end
 
 struct KLCycleIterator{T}
-    kl_folds::KLFolds{T}
+    kl_folds::KLFold{T}
     epochs::Int
 end
 
-function kl_cycle(kl_folds::KLFolds, epochs::Int)
+function kl_cycle(kl_folds::KLFold, epochs::Int)
     return KLCycleIterator(kl_folds, epochs)
 end
 

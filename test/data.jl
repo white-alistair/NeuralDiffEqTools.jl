@@ -44,7 +44,7 @@ end
 
     k = 10
     l = 2
-    kl_folds = NeuralDiffEqTools.KLFolds(time_series, k, l)
+    kl_folds = NeuralDiffEqTools.KLFold(time_series, k, l)
 
     @test size(kl_folds.folds)[1] == 10
 end
@@ -59,7 +59,7 @@ end
     k = 10
     l = 2
     shuffle = true
-    kl_folds = NeuralDiffEqTools.KLFolds(time_series, k, l, n_test_folds; shuffle)
+    kl_folds = NeuralDiffEqTools.KLFold(time_series, k, l, n_test_folds; shuffle)
 
     @test size(kl_folds.test_folds) == (n_test_folds,)
     for fold in kl_folds.test_folds
@@ -81,7 +81,7 @@ end
 
     k = 4
     l = 2
-    kl_folds = NeuralDiffEqTools.KLFolds(time_series, k, l; shuffle = false)
+    kl_folds = NeuralDiffEqTools.KLFold(time_series, k, l; shuffle = false)
 
     epochs = 3
     itr = NeuralDiffEqTools.kl_cycle(kl_folds, epochs)
