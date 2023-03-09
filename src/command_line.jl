@@ -35,7 +35,7 @@ function get_common_settings()
             default = 1
 
         # Validation args
-        "--validation"
+        "--validation-type", "--validation"
             arg_type = Symbol
             required = true
         # Train-validation-test split
@@ -45,8 +45,10 @@ function get_common_settings()
             arg_type = Float32
         "--n-test-sets"
             arg_type = Int
+            default = 0
         "--test-seconds"
             arg_type = Float32
+            default = 0f0
         # KL-fold cross validation
         "--k"
             arg_type = Int
@@ -54,6 +56,7 @@ function get_common_settings()
             arg_type = Int
         "--n-test-folds"
             arg_type = Int
+            default = 0
         "--shuffle"
             arg_type = Bool
             default = true
