@@ -127,13 +127,9 @@ function train!(
             )
 
             # early_stopping(val_loss) && @goto complete_training  # Use goto and label to break out of nested loops
-            if (
-                stopping_criterion == :val_loss &&
-                moving_avg_val_loss < early_stopping_val_loss
-            ) || (
-                stopping_criterion == :valid_time &&
-                moving_avg_valid_time > early_stopping_valid_time
-            )
+            #! format: off
+            if (stopping_criterion == :val_loss && moving_avg_val_loss < early_stopping_val_loss) || 
+                (stopping_criterion == :valid_time && moving_avg_valid_time > early_stopping_valid_time)
                 θ_min = copy(θ)
                 early_stopping_epoch = epoch
                 early_stopping_val_loss = moving_avg_val_loss
@@ -141,11 +137,10 @@ function train!(
             end
 
             if (time() - training_start_time) > time_limit
-                 #! format: off
                  @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Time limit of %.1f hours reached for the training loop. Stopping here." name epoch (time_limit / 3600)
                  @goto complete_training  # Use goto and label to break out of nested loops
-                 #! format: on
             end
+            #! format: on
 
             if optimiser isa AbstractScheduledOptimiser
                 update_learning_rate!(optimiser)
