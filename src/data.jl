@@ -2,8 +2,8 @@ abstract type AbstractData{T} end
 
 struct TrainValidTestSplit{T} <: AbstractData{T}
     train_data::TimeSeries{T}
-    valid_data::Array{TimeSeries{T}}
-    test_data::Array{TimeSeries{T}}
+    valid_data::Vector{TimeSeries{T}}
+    test_data::Vector{TimeSeries{T}}
 end
 
 function TrainValidTestSplit(
