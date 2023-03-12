@@ -14,8 +14,8 @@ function TrainValidTestSplit(
 ) where {T}
     (; times, trajectory) = time_series
 
-    total_valid_seconds = n_valid_sets * valid_seconds
-    total_valid_obs = Int(total_valid_seconds / Δt) + 1
+    valid_obs = ceil(Int, valid_seconds / Δt)
+    total_valid_obs = 1 + n_valid_sets * valid_obs
 
     train_data = TimeSeries{T}(
         times[1:end-total_valid_obs+1],
@@ -27,7 +27,7 @@ function TrainValidTestSplit(
         trajectory[:, end-total_valid_obs+1:end],
     )
 
-    chunked_valid_data = chunk(valid_data, Int(valid_seconds / Δt) + 1)
+    chunked_valid_data = chunk(valid_data, valid_obs + 1)
 
     return TrainValidTestSplit{T}(train_data, chunked_valid_data, [])
 end
