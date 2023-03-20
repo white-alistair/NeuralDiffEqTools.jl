@@ -1,4 +1,4 @@
-function get_adjoint(sensealg, vjp, checkpointing)
+function get_adjoint(sensealg, vjp, checkpointing = false)
     if isnothing(sensealg)
         return nothing
     end
@@ -9,6 +9,8 @@ function get_adjoint(sensealg, vjp, checkpointing)
         autojacvec = ZygoteVJP()
     elseif vjp == :ReverseDiffVJP
         autojacvec = ReverseDiffVJP(true)
+    elseif vjp == :EnzymeVJP
+        autojacvec = EnzymeVJP()  # Doesn't work
     end
     
     if sensealg == :BacksolveAdjoint
