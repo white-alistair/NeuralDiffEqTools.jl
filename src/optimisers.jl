@@ -17,7 +17,7 @@ function ConstantLearningRateOptimiser{R,T}(rule, learning_rate) where {R,T}
     return ConstantLearningRateOptimiser{R,T}(rule, learning_rate)
 end
 
-# Exponentially decaying learning rate
+# Exponential Decay
 struct ExponentialDecayOptimiser{R<:Optimisers.AbstractRule,T<:AbstractFloat} <:
        AbstractScheduledOptimiser{T}
     rule::R
@@ -46,7 +46,7 @@ function update_learning_rate!(
     return nothing
 end
 
-# Linearly decaying learning rate
+# Linear Decay
 struct LinearDecayOptimiser{R<:Optimisers.AbstractRule,T<:AbstractFloat} <:
        AbstractScheduledOptimiser{T}
     rule::R
