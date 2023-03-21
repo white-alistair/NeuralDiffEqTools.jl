@@ -1,3 +1,15 @@
+struct Curriculum
+    name::String
+    hash::UInt64
+    lessons::Vector{Lesson}
+end
+
+function Curriculum(curriculum_dict::Dict{String,Any})
+    curriculum_name = curriculum_dict["name"]
+    lessons = [Lesson(lesson_dict) for lesson_dict in curriculum_dict["lessons"]]
+    return Curriculum(curriculum_name, hash(curriculum_dict), lessons)
+end
+
 struct Lesson{O<:Optimisers.AbstractRule,S<:ParameterSchedulers.Stateful}
     name::String
     steps::Int
@@ -6,26 +18,11 @@ struct Lesson{O<:Optimisers.AbstractRule,S<:ParameterSchedulers.Stateful}
     scheduler::S
 end
 
-struct Curriculum
-    name::String
-    hash::UInt64
-    lessons::Vector{Lesson}
-end
-
-function Curriculum(curriculum_file)
-    curriculum_dict = TOML.parsefile(curriculum_file)
-    curriculum_name = curriculum_dict["name"]
-
-    lessons = Lesson[]
-    for lesson_dict in curriculum_dict["lessons"]
-        @unpack name, steps, epochs = lesson_dict
-        optimiser = get_optimiser(lesson_dict)
-        scheduler = get_scheduler(lesson_dict)
-        lesson = Lesson(name, steps, epochs, optimiser, scheduler)
-        push!(lessons, lesson)
-    end
-
-    return Curriculum(curriculum_name, hash(curriculum_dict), lessons)
+function Lesson(lesson_dict::Dict{String,Any})
+    @unpack name, steps, epochs = lesson_dict
+    optimiser = get_optimiser(lesson_dict)
+    scheduler = get_scheduler(lesson_dict)
+    return Lesson(name, steps, epochs, optimiser, scheduler)
 end
 
 function get_optimiser(lesson_dict)
