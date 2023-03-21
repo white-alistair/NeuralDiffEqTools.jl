@@ -6,10 +6,12 @@ using OrdinaryDiffEq,
     Flux,
     Zygote,
     Optimisers,
+    ParameterSchedulers,
     ArgParse,
     LinearAlgebra,
     Statistics,
     Random,
+    Parameters,
     Printf,
     DelimitedFiles,
     TOML,
@@ -21,7 +23,6 @@ include("data.jl")
 include("multiple_shooting.jl")
 include("prob.jl")
 include("neural_nets.jl")
-include("optimisers.jl")
 include("curriculum.jl")
 include("adjoints.jl")
 include("losses.jl")

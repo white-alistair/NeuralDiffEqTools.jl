@@ -1,84 +1,50 @@
-struct Lesson{T,O<:AbstractOptimiser{T}}
+struct Lesson{O<:Optimisers.AbstractRule,S<:ParameterSchedulers.Stateful}
     name::String
     steps::Int
     epochs::Int
     optimiser::O
+    scheduler::S
 end
 
-struct Curriculum{T}
+struct Curriculum
     name::String
     hash::UInt64
-    lessons::Vector{Lesson{T}}
+    lessons::Vector{Lesson}
 end
 
-function Curriculum(curriculum_file, T)
+function Curriculum(curriculum_file)
     curriculum_dict = TOML.parsefile(curriculum_file)
     curriculum_name = curriculum_dict["name"]
 
-    lessons = Lesson{T}[]
+    lessons = Lesson[]
     for lesson_dict in curriculum_dict["lessons"]
-        lesson_name, epochs, steps, optimiser_dict = unpack_lesson(lesson_dict)
-        optimiser = get_optimiser(optimiser_dict, epochs, T)
-        lesson = Lesson{T,typeof(optimiser)}(lesson_name, steps, epochs, optimiser)
+        @unpack name, steps, epochs = lesson_dict
+        optimiser = get_optimiser(lesson_dict)
+        scheduler = get_scheduler(lesson_dict)
+        lesson = Lesson(name, steps, epochs, optimiser, scheduler)
         push!(lessons, lesson)
     end
 
-    return Curriculum{T}(
-        curriculum_name,
-        hash(curriculum_dict),
-        lessons,
-    )
+    return Curriculum(curriculum_name, hash(curriculum_dict), lessons)
 end
 
-function unpack_lesson(lesson_dict)
-    name = lesson_dict["name"]
-    epochs = lesson_dict["epochs"]
-    steps = lesson_dict["steps"]
-    optimiser_dict = lesson_dict["optimiser"]
-    return name, epochs, steps, optimiser_dict
-end
-
-function get_opt_rule(opt_dict)
-    rule_type = opt_dict["rule"]
+function get_optimiser(lesson_dict)
+    rule_type = lesson_dict["optimiser"]
     if rule_type == "Adam"
         return Optimisers.Adam()
     elseif rule_type == "AdamW"
         rule = Optimisers.AdamW()
-        weight_decay = opt_dict["weight_decay"]
-        return Optimisers.adjust(rule, gamma = weight_decay)
+        weight_decay = lesson_dict["weight_decay"]
+        return Optimisers.adjust(rule; gamma = weight_decay)
     end
 end
 
-function get_optimiser(opt_dict, epochs, T)
-    opt_rule = get_opt_rule(opt_dict)
-    schedule_type = opt_dict["schedule_type"]
-    if schedule_type == "constant"
-        learning_rate = opt_dict["learning_rate"]
-        return ConstantLearningRateOptimiser{typeof(opt_rule),T}(opt_rule, learning_rate)
-    else
-        initial_learning_rate = opt_dict["initial_learning_rate"]
-        final_learning_rate = opt_dict["final_learning_rate"]
-        if schedule_type == "linear_warmup"
-            return LinearWarmupOptimiser{typeof(opt_rule),T}(
-                opt_rule,
-                initial_learning_rate,
-                final_learning_rate,
-                epochs,
-            )
-        elseif schedule_type == "linear_decay"
-            return LinearDecayOptimiser{typeof(opt_rule),T}(
-                opt_rule,
-                initial_learning_rate,
-                final_learning_rate,
-                epochs,
-            )
-        elseif schedule_type == "exponential_decay"
-            return ExponentialDecayOptimiser{typeof(opt_rule),T}(
-                opt_rule,
-                initial_learning_rate,
-                final_learning_rate,
-                epochs,
-            )
-        end
+function get_scheduler(lesson_dict)
+    schedule_type = lesson_dict["schedule"]
+    if schedule_type == "CosAnneal"
+        @unpack max_lr, min_lr, epochs = lesson_dict
+        return ParameterSchedulers.Stateful(
+            CosAnneal(; λ0 = max_lr, λ1 = min_lr, period = epochs),
+        )
     end
 end

@@ -2,7 +2,7 @@ function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
     data::KLFold{T},
-    curriculum::Curriculum{T};
+    curriculum::Curriculum;
     loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
@@ -191,7 +191,7 @@ function train!(
     θ::Vector{T},
     prob::SciMLBase.AbstractDEProblem,
     data::TrainValidTestSplit{T},
-    curriculum::Curriculum{T};
+    curriculum::Curriculum;
     loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
@@ -224,17 +224,17 @@ function train!(
     epoch = 0
     training_start_time = time()
     for lesson in curriculum.lessons
-        (; name, steps, epochs, optimiser) = lesson
-        opt_state = Optimisers.setup(optimiser.rule, θ)
+        (; name, steps, epochs, optimiser, scheduler) = lesson
+        opt_state = Optimisers.setup(optimiser, θ)
 
         lesson_start_time = time()
         for _ = 1:epochs
             epoch += 1
             training_losses = Float32[]
 
-            #! format: off
-            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(opt_state.rule)
-            #! format: on
+            learning_rate = ParameterSchedulers.next!(scheduler)
+            Optimisers.adjust!(opt_state; eta = learning_rate)
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch learning_rate
 
             iter = 0
             epoch_start_time = time()
@@ -293,7 +293,7 @@ function train!(
                 [
                     epoch,
                     steps,
-                    get_learning_rate(opt_state.rule),
+                    learning_rate,
                     mean(training_losses),
                     val_loss,
                     valid_time,
@@ -316,11 +316,6 @@ function train!(
                 @goto complete_training  # Use goto and label to break out of nested loops
                 #! format: on
             end
-
-            if optimiser isa AbstractScheduledOptimiser
-                update_learning_rate!(opt_state, optimiser)
-            end
-
             flush(stderr)  # Keep log files up to date on the cluster
         end
         lesson_duration = time() - lesson_start_time
