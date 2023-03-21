@@ -41,7 +41,7 @@ function train!(
     for lesson in curriculum.lessons
         lesson_start_time = time()
         (; name, steps, epochs, optimiser) = lesson
-        set_initial_learning_rate!(optimiser)
+        opt_state = Optimisers.setup(optimiser.rule, θ)
 
         for (training_folds, validation_folds) in kl_cycle(data, epochs)
             epoch += 1
@@ -49,7 +49,7 @@ function train!(
             training_losses = Float32[]
 
             #! format: off
-            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(optimiser)
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(opt_state.rule)
             #! format: on
 
             epoch_start_time = time()
@@ -74,7 +74,7 @@ function train!(
                         return loss(predicted_trajectory, target_trajectory)
                     end
 
-                    Optimisers.update!(optimiser, θ, gradients)
+                    opt_state, θ = Optimisers.update!(opt_state, θ, gradients[1])
 
                     push!(training_losses, training_loss)
 
@@ -118,7 +118,7 @@ function train!(
                 [
                     epoch,
                     steps,
-                    get_learning_rate(optimiser),
+                    get_learning_rate(opt_state.rule),
                     mean(training_losses),
                     moving_avg_val_loss,
                     moving_avg_valid_time,
@@ -143,7 +143,7 @@ function train!(
             #! format: on
 
             if optimiser isa AbstractScheduledOptimiser
-                update_learning_rate!(optimiser)
+                update_learning_rate!(opt_state, optimiser)
             end
         end
 
@@ -225,7 +225,7 @@ function train!(
     training_start_time = time()
     for lesson in curriculum.lessons
         (; name, steps, epochs, optimiser) = lesson
-        set_initial_learning_rate!(optimiser)
+        opt_state = Optimisers.setup(optimiser.rule, θ)
 
         lesson_start_time = time()
         for _ = 1:epochs
@@ -233,7 +233,7 @@ function train!(
             training_losses = Float32[]
 
             #! format: off
-            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(optimiser)
+            @info @sprintf "[lesson = %-20.20s] [epoch = %04i] Learning rate = %.1e" name epoch get_learning_rate(opt_state.rule)
             #! format: on
 
             iter = 0
@@ -258,7 +258,7 @@ function train!(
                     return loss(predicted_trajectory, target_trajectory)
                 end
 
-                Optimisers.update!(optimiser, θ, gradients)
+                opt_state, θ = Optimisers.update!(opt_state, θ, gradients[1])
 
                 push!(training_losses, training_loss)
 
@@ -293,7 +293,7 @@ function train!(
                 [
                     epoch,
                     steps,
-                    get_learning_rate(optimiser),
+                    get_learning_rate(opt_state.rule),
                     mean(training_losses),
                     val_loss,
                     valid_time,
@@ -318,7 +318,7 @@ function train!(
             end
 
             if optimiser isa AbstractScheduledOptimiser
-                update_learning_rate!(optimiser)
+                update_learning_rate!(opt_state, optimiser)
             end
 
             flush(stderr)  # Keep log files up to date on the cluster
