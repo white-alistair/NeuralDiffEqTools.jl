@@ -19,7 +19,6 @@ using OrdinaryDiffEq,
     CairoMakie
 
 include("time_series.jl")
-include("data.jl")
 include("multiple_shooting.jl")
 include("prob.jl")
 include("neural_nets.jl")
