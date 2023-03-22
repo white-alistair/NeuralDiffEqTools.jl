@@ -34,22 +34,6 @@ function get_common_settings()
             arg_type = Int
             default = 1
 
-        # Validation args
-        "--validation-type", "--validation"
-            arg_type = Symbol
-            required = true
-        # Train-validation-test split
-        "--n-val-sets"
-            arg_type = Int
-        "--val-seconds"
-            arg_type = Float32
-        "--n-test-sets"
-            arg_type = Int
-            default = 0
-        "--test-seconds"
-            arg_type = Float32
-            default = 0f0e
-
         # Neural net args
         "--hidden-layers", "--layers"
             arg_type = Int
@@ -71,12 +55,6 @@ function get_common_settings()
         "--optimiser-hyperparams", "--opt-params"
             arg_type = NamedTuple
             default = (;)
-        "--stopping-criterion"
-            arg_type = Symbol
-            default = :valid_time
-        "--valid-error-threshold", "--valid-error"
-            arg_type = Float32
-            default = 4f-1
         "--patience"
             arg_type = Int
             default = typemax(Int)  # ~Inf
@@ -94,9 +72,6 @@ function get_common_settings()
         "--solver"
             arg_type = OrdinaryDiffEqAlgorithm
             default = Tsit5()
-        "--maxiters"
-            arg_type = Int
-            default = 10_000
         "--sensealg"
             arg_type = Symbol
             default = :BacksolveAdjoint
