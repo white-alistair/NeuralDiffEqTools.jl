@@ -41,23 +41,22 @@ function get_scheduler(lesson_dict)
     if schedule_type == "Constant"
         @unpack lr = lesson_dict
         return ParameterSchedulers.Stateful(ParameterSchedulers.Constant(lr))
-    elseif schedule_type == "Exp"
-        @unpack max_lr, min_lr, epochs = lesson_dict
+    elseif schedule_type == "ExpDecay"
+        @unpack min_lr, max_lr, epochs = lesson_dict
         decay_rate = (min_lr / max_lr)^(1 / (epochs - 1))
         return ParameterSchedulers.Stateful(
             ParameterSchedulers.Exp(; λ = max_lr, γ = decay_rate),
         )
     elseif schedule_type == "CosAnneal"
-        @unpack max_lr, min_lr, epochs = lesson_dict
+        @unpack min_lr, max_lr = lesson_dict
+        period = get(lesson_dict, "period", lesson_dict["epochs"])  # Use period if given, else epochs
         return ParameterSchedulers.Stateful(
-            ParameterSchedulers.CosAnneal(; λ0 = max_lr, λ1 = min_lr, period = epochs),
+            ParameterSchedulers.CosAnneal(; λ0 = max_lr, λ1 = min_lr, period),
         )
     elseif schedule_type == "LinearRamp"
-        @unpack max_lr, min_lr, epochs = lesson_dict
+        @unpack min_lr, max_lr, epochs = lesson_dict
         return ParameterSchedulers.Stateful(
             ParameterSchedulers.Triangle(; λ0 = max_lr, λ1 = min_lr, period = 2 * epochs),
         )
-    elseif schedule_type == "Linear"
-        # TODO - see cheatsheet
     end
 end
