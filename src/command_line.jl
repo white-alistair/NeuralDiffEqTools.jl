@@ -48,18 +48,7 @@ function get_common_settings()
             default = 0
         "--test-seconds"
             arg_type = Float32
-            default = 0f0
-        # KL-fold cross validation
-        "--k"
-            arg_type = Int
-        "--l"
-            arg_type = Int
-        "--n-test-folds"
-            arg_type = Int
-            default = 0
-        "--shuffle"
-            arg_type = Bool
-            default = true
+            default = 0f0e
 
         # Neural net args
         "--hidden-layers", "--layers"
