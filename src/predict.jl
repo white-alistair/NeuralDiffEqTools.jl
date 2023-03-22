@@ -1,4 +1,4 @@
-function predict(prob, θ; solver, saveat, reltol, abstol, maxiters, sensealg = nothing)
-    sol = solve(prob, solver; p = θ, saveat, reltol, abstol, maxiters, sensealg)
-    return sol.retcode, Array(sol)
+function predict(prob, θ; solver, saveat, reltol, abstol, sensealg = nothing)
+    sol = solve(prob, solver; p = θ, saveat, reltol, abstol, sensealg)
+    return Array(sol)
 end
