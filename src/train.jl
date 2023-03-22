@@ -221,11 +221,17 @@ function train!(
     # Keep track of training loss, validation loss, and duration per epoch
     learning_curve = Array{Array{Float32}}(undef, 0)
 
+    local opt_state
+    
     epoch = 0
     training_start_time = time()
     for lesson in curriculum.lessons
         (; name, steps, epochs, optimiser, scheduler) = lesson
-        opt_state = Optimisers.setup(optimiser, θ)
+        
+        # If no optimiser is given, we re-use the one from the previous lesson
+        if !isnothing(optimiser)
+            opt_state = Optimisers.setup(optimiser, θ)
+        end
 
         lesson_start_time = time()
         for _ = 1:epochs

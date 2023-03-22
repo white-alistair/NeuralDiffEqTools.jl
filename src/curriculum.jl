@@ -1,16 +1,4 @@
-struct Curriculum
-    name::String
-    hash::UInt64
-    lessons::Vector{Lesson}
-end
-
-function Curriculum(curriculum_dict::Dict{String,Any})
-    curriculum_name = curriculum_dict["name"]
-    lessons = [Lesson(lesson_dict) for lesson_dict in curriculum_dict["lessons"]]
-    return Curriculum(curriculum_name, hash(curriculum_dict), lessons)
-end
-
-struct Lesson{O<:Optimisers.AbstractRule,S<:ParameterSchedulers.Stateful}
+struct Lesson{O<:Union{Optimisers.AbstractRule,Nothing},S<:ParameterSchedulers.Stateful}
     name::String
     steps::Int
     epochs::Int
@@ -25,9 +13,23 @@ function Lesson(lesson_dict::Dict{String,Any})
     return Lesson(name, steps, epochs, optimiser, scheduler)
 end
 
+struct Curriculum
+    name::String
+    hash::UInt64
+    lessons::Vector{Lesson}
+end
+
+function Curriculum(curriculum_dict::Dict{String,Any})
+    curriculum_name = curriculum_dict["name"]
+    lessons = [Lesson(lesson_dict) for lesson_dict in curriculum_dict["lessons"]]
+    return Curriculum(curriculum_name, hash(curriculum_dict), lessons)
+end
+
 function get_optimiser(lesson_dict)
-    rule_type = lesson_dict["optimiser"]
-    if rule_type == "Adam"
+    rule_type = get(lesson_dict, "optimiser", nothing)
+    if isnothing(rule_type)
+        return nothing
+    elseif rule_type == "Adam"
         return Optimisers.Adam()
     elseif rule_type == "AdamW"
         rule = Optimisers.AdamW()
