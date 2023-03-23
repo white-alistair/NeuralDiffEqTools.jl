@@ -59,12 +59,14 @@ function train!(
             end
 
             push!(training_losses, training_loss)
+            
             opt_state, θ = Optimisers.update!(opt_state, θ, gradients[1])
 
             if verbose
                 @info @sprintf "[epoch = %04i] [iter = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter tspan[1] tspan[2] training_loss
             end
         end
+
         val_loss = evaluate(prob, θ, val_data, loss, solver, reltol, abstol)
         epoch_duration = time() - epoch_start_time
 
