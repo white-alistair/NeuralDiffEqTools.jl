@@ -27,8 +27,7 @@ function train!(
     min_val_epoch = 0
     early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
 
-    # Keep track of training loss, validation loss, and duration per epoch
-    learning_curve = Array{Array{Float32}}(undef, 0)
+    learning_curve = LearningCurve{T}()
 
     opt_state = Optimisers.setup(optimiser, θ)
 
@@ -59,11 +58,11 @@ function train!(
             end
 
             push!(training_losses, training_loss)
-            
+
             opt_state, θ = Optimisers.update!(opt_state, θ, gradients[1])
 
             if verbose
-                @info @sprintf "[epoch = %04i] [iter = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter tspan[1] tspan[2] training_loss
+                @info @sprintf "[epoch = %04i] [ite r = %04i] [tspan = (%05.2f, %05.2f)] Loss = %.2e\n" epoch iter tspan[1] tspan[2] training_loss
             end
         end
 
@@ -77,7 +76,11 @@ function train!(
 
         push!(
             learning_curve,
-            [epoch, learning_rate, mean(training_losses), val_loss, epoch_duration],
+            epoch,
+            learning_rate,
+            mean(training_losses),
+            val_loss,
+            epoch_duration,
         )
 
         early_stopping(val_loss) && break

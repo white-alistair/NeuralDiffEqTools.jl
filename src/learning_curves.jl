@@ -1,18 +1,33 @@
-function save_learning_curve(learning_curve, model_id; dir = "learning_curves")
-    col_names = [[
-        "epoch",
-        "steps",
-        "learning_rate",
-        "train_loss",
-        "val_loss",
-        "valid_time",
-        "duration",
-    ]]
+struct LearningCurve{T}
+    epoch::Vector{Int}
+    learning_rate::Vector{T}
+    train_loss::Vector{T}
+    val_loss::Vector{T}
+    duration::Vector{T}
+end
+
+function LearningCurve{T}() where {T}
+    return LearningCurve{T}([], [], [], [], [])
+end
+
+import Base: push!
+function push!(lc::LearningCurve, epoch, lr, train_loss, val_loss, duration)
+    push!(lc.epoch, epoch)
+    push!(lc.learning_rate, lr)
+    push!(lc.train_loss, train_loss)
+    push!(lc.val_loss, val_loss)
+    push!(lc.duration, duration)
+    return nothing
+end
+
+function save_learning_curve(lc::LearningCurve, model_id; dir = "learning_curves")
+    col_names = ["epoch" "learning_rate" "train_loss" "val_loss" "duration"]
+    cols = [lc.epoch lc.learning_rate lc.train_loss lc.val_loss lc.duration]
     mkpath(dir)
     path = joinpath(dir, model_id * ".csv")
     open(path, "w") do io
         writedlm(io, col_names, ',')
-        writedlm(io, learning_curve, ',')
+        writedlm(io, cols, ',')
     end
     return nothing
 end
@@ -25,13 +40,22 @@ function plot_learning_curve(model_id::Integer)
     return plot_learning_curve(filepath)
 end
 
-function plot_learning_curve(filepath::String)
-    data, header = readdlm(filepath, ','; header = true)
-    epoch, steps, learning_rate, training_loss, validation_loss, valid_time, duration =
-        eachcol(data)
+function plot_learning_curve(lc::LearningCurve)
+    (; epoch, learning_rate, train_loss, val_loss, duration) = lc
     return plot_learning_curve(
         epoch,
-        steps,
+        learning_rate,
+        train_loss,
+        val_loss,
+        duration,
+    )
+end
+
+function plot_learning_curve(filepath::String)
+    data, header = readdlm(filepath, ','; header = true)
+    epoch, learning_rate, training_loss, validation_loss, duration = eachcol(data)
+    return plot_learning_curve(
+        epoch,
         learning_rate,
         training_loss,
         validation_loss,
@@ -39,14 +63,7 @@ function plot_learning_curve(filepath::String)
     )
 end
 
-function plot_learning_curve(
-    epoch,
-    steps,
-    learning_rate,
-    training_loss,
-    validation_loss,
-    duration,
-)
+function plot_learning_curve(epoch, learning_rate, training_loss, validation_loss, duration)
     f = CairoMakie.Figure(; resolution = (1000, 1000))
 
     # 1. Plot training and validation loss
@@ -98,15 +115,10 @@ function plot_learning_curve(
     linkxaxes!(ax1, ax3)
     lines!(ax3, epoch, learning_rate)
 
-    # 3. Plot training steps
-    ax4 = Axis(f[6, 1]; ylabel = "steps", yticks = IntegerTicks())
+    # 3. Plot epoch duration
+    ax4 = Axis(f[7, 1]; xlabel = "epoch", ylabel = "duration [s]")
     linkxaxes!(ax1, ax4)
-    lines!(ax4, epoch, steps)
-
-    # 4. Plot epoch duration
-    ax5 = Axis(f[7, 1]; xlabel = "epoch", ylabel = "duration [s]")
-    linkxaxes!(ax1, ax5)
-    lines!(ax5, epoch, duration)
+    lines!(ax4, epoch, duration)
 
     return f
 end
