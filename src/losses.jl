@@ -1,3 +1,6 @@
-function MSE(prediction::AbstractMatrix{T}, target::AbstractMatrix{T}) where {T<:Real}
-    return mean(abs2, prediction[:, 2:end] .- target[:, 2:end])  # Do not include u0
+function MSE(
+    predicted_trajectory::AbstractMatrix{T},
+    target_trajectory::AbstractMatrix{T},
+) where {T}
+    return mean(abs2, predicted_trajectory[:, 2:end] .- target_trajectory[:, 2:end])  # Do not include u0
 end
