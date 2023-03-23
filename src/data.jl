@@ -7,3 +7,7 @@ end
 function Data{T}(train_data::SubArray, val_data::SubArray, test_data::SubArray) where {T}
     return Data{T}(copy(train_data), copy(val_data), copy(test_data))
 end
+
+function Data{T}(train_data, val_data) where {T}
+    return Data{T}(train_data, val_data, [])
+end
