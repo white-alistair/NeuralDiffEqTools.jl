@@ -21,7 +21,8 @@ function train!(
 
     (; train_data, val_data, test_data) = data
 
-    # Keep track of the minimum validation loss and parameters for early stopping
+    # Initial setup
+    opt_state = Optimisers.setup(optimiser, θ)
     θ_min = copy(θ)
     min_val_loss = Inf32
     min_val_epoch = 0
@@ -31,8 +32,6 @@ function train!(
     if show_plot
         fig, ax = init_learning_curve_plot(epochs)
     end
-
-    opt_state = Optimisers.setup(optimiser, θ)
 
     training_start_time = time()
     for (epoch, learning_rate) in zip(1:epochs, scheduler)
