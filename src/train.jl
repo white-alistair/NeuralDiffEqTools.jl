@@ -28,6 +28,9 @@ function train!(
     early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
 
     learning_curve = LearningCurve{T}()
+    if show_plot
+        fig, ax = init_learning_curve_plot(epochs)
+    end
 
     opt_state = Optimisers.setup(optimiser, θ)
 
@@ -82,6 +85,11 @@ function train!(
             val_loss,
             epoch_duration,
         )
+
+        if show_plot
+            plot_learning_curve!(ax, learning_curve)
+            display(fig)
+        end
 
         early_stopping(val_loss) && break
 

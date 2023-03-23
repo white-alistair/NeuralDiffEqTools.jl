@@ -32,6 +32,7 @@ function save_learning_curve(lc::LearningCurve, model_id; dir = "learning_curves
     return nothing
 end
 
+# Plots
 struct IntegerTicks end
 Makie.get_tickvalues(::IntegerTicks, vmin, vmax) = ceil(Int, vmin):floor(Int, vmax)
 
@@ -42,13 +43,7 @@ end
 
 function plot_learning_curve(lc::LearningCurve)
     (; epoch, learning_rate, train_loss, val_loss, duration) = lc
-    return plot_learning_curve(
-        epoch,
-        learning_rate,
-        train_loss,
-        val_loss,
-        duration,
-    )
+    return plot_learning_curve(epoch, learning_rate, train_loss, val_loss, duration)
 end
 
 function plot_learning_curve(filepath::String)
@@ -110,4 +105,67 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
     lines!(ax4, epoch, duration)
 
     return f
+end
+
+# Real-time plots
+function init_learning_curve_plot(epochs)
+    fig = CairoMakie.Figure()
+    ax1 = Axis(
+        fig[1:3, 1];
+        xlabel = "Epoch",
+        ylabel = "Loss",
+        yscale = log10,
+        yticks = LogTicks(IntegerTicks()),
+        ygridvisible = true,
+        yminorticksvisible = true,
+        yminorgridvisible = true,
+        yminorticks = IntervalsBetween(8),
+    )
+    ax2 = Axis(
+        fig[4, 1];
+        ylabel = "learning rate",
+        ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
+    )
+    linkxaxes!(ax1, ax2)
+    xlims!(ax2, 0, epochs)
+
+    Legend(
+        fig[1, 1],
+        [LineElement(; color = :blue), LineElement(; color = :red)],
+        ["Training", "Validation"];
+        margin = (10, 10, 10, 10),
+        tellheight = false,
+        tellwidth = false,
+        halign = :right,
+        valign = :top,
+    )
+
+    return fig, (ax1, ax2)
+end
+
+function plot_learning_curve!(axes, learning_curve::LearningCurve)
+    ax1, ax2 = axes
+
+    # Training and validation loss
+    empty!(ax1)
+    lines!(
+        ax1,
+        learning_curve.epoch,
+        learning_curve.train_loss;
+        label = "Training",
+        color = :blue,
+    )
+    lines!(
+        ax1,
+        learning_curve.epoch,
+        learning_curve.val_loss;
+        label = "Validation",
+        color = :red,
+    )
+
+    # Learning rate
+    empty!(ax2)
+    lines!(ax2, learning_curve.epoch, learning_curve.learning_rate; color = :darkgreen)
+    
+    return nothing
 end
