@@ -68,17 +68,8 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
 
     # 1. Plot training and validation loss
     ax1 = Axis(
-        f[1:4, 1];
-        ylabel = "validation loss",
-        yscale = log10,
-        yticks = LogTicks(IntegerTicks()),
-        yaxisposition = :right,
-        ygridvisible = false,
-    )
-
-    ax2 = Axis(
         f[1:3, 1];
-        ylabel = "training loss",
+        ylabel = "Loss",
         yscale = log10,
         yticks = LogTicks(IntegerTicks()),
         ygridvisible = true,
@@ -86,19 +77,17 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
         yminorgridvisible = true,
         yminorticks = IntervalsBetween(8),
     )
-    hidespines!(ax2)
-    hidexdecorations!(ax2)
 
-    train_plot = lines!(ax2, epoch, training_loss; color = :blue)
+    train_plot = lines!(ax1, epoch, training_loss; color = :blue)
     valid_plot = lines!(ax1, epoch, validation_loss; color = :red)
 
     min_val_loss, min_val_epoch = findmin(validation_loss)
     min_val_plot = hlines!(ax1, min_val_loss; linestyle = :dash)
     vlines!(ax1, min_val_epoch; linestyle = :dash)
     Legend(
-        f[1:4, 1],
+        f[1:3, 1],
         [train_plot, valid_plot, min_val_plot],
-        ["training loss", "validation loss", "minimum validation loss"];
+        ["training", "validation", "minimum validation loss"];
         margin = (10, 10, 10, 10),
         tellheight = false,
         tellwidth = false,
@@ -108,7 +97,7 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
 
     # 2. Plot learning rate
     ax3 = Axis(
-        f[5, 1];
+        f[4, 1];
         ylabel = "learning rate",
         ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
     )
@@ -116,7 +105,7 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
     lines!(ax3, epoch, learning_rate)
 
     # 3. Plot epoch duration
-    ax4 = Axis(f[7, 1]; xlabel = "epoch", ylabel = "duration [s]")
+    ax4 = Axis(f[5, 1]; xlabel = "epoch", ylabel = "duration [s]")
     linkxaxes!(ax1, ax4)
     lines!(ax4, epoch, duration)
 
