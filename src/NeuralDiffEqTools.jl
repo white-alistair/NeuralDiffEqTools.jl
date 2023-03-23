@@ -20,6 +20,7 @@ using OrdinaryDiffEq,
 
 include("time_series.jl")
 include("multiple_shooting.jl")
+include("data.jl")
 include("prob.jl")
 include("neural_nets.jl")
 include("scheduler.jl")

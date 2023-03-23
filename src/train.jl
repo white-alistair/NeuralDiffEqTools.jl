@@ -1,10 +1,10 @@
 function train!(
     θ::AbstractVector{T},
     prob::SciMLBase.AbstractDEProblem,
-    data,
+    data::Data{T},
+    epochs::Int,
     optimiser::Optimisers.AbstractRule,
-    scheduler::ParameterSchedulers.AbstractSchedule,
-    epochs::Int;
+    scheduler::ParameterSchedulers.AbstractSchedule;
     loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
