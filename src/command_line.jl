@@ -6,10 +6,6 @@ function ArgParse.parse_item(::Type{Function}, function_name::AbstractString)
     return eval_string(function_name)
 end
 
-function ArgParse.parse_item(::Type{DataType}, type_name::AbstractString)
-    return eval_string(type_name)
-end
-
 function ArgParse.parse_item(::Type{OrdinaryDiffEqAlgorithm}, solver_name::AbstractString)
     return eval_string(solver_name * "()")
 end
@@ -46,9 +42,9 @@ function get_common_settings()
             default = relu
 
         # Training args
-        "--curriculum-file"
-            arg_type = String
-            default = "curriculum.toml"
+        "--epochs"
+            arg_type = Int
+            required = true
         "--optimiser-rule", "--opt"
             arg_type = Symbol
             default = :Adam
