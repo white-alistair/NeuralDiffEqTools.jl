@@ -6,7 +6,7 @@ end
 function get_scheduler(schedule_dict::Dict)
     schedule_epoch_pairs =
         [unpack_schedule(config) for config in schedule_dict["schedules"]]
-    return Sequence(schedule_epoch_pairs...)
+    return ParameterSchedulers.Sequence(schedule_epoch_pairs...)
 end
 
 function unpack_schedule(config)
