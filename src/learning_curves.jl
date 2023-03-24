@@ -112,7 +112,6 @@ function init_learning_curve_plot(epochs)
     fig = CairoMakie.Figure()
     ax1 = Axis(
         fig[1:3, 1];
-        xlabel = "Epoch",
         ylabel = "Loss",
         yscale = log10,
         yticks = LogTicks(IntegerTicks()),
@@ -123,6 +122,7 @@ function init_learning_curve_plot(epochs)
     )
     ax2 = Axis(
         fig[4, 1];
+        xlabel = "Epoch",
         ylabel = "learning rate",
         ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
     )
