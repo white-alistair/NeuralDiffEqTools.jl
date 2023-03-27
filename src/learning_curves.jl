@@ -82,7 +82,7 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
     Legend(
         f[1:3, 1],
         [train_plot, valid_plot, min_val_plot],
-        ["training", "validation", "minimum validation loss"];
+        ["Training", "Validation", "Minimum Validation Loss"];
         margin = (10, 10, 10, 10),
         tellheight = false,
         tellwidth = false,
@@ -93,14 +93,14 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
     # 2. Plot learning rate
     ax3 = Axis(
         f[4, 1];
-        ylabel = "learning rate",
+        ylabel = "Learning Rate",
         ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
     )
     linkxaxes!(ax1, ax3)
     lines!(ax3, epoch, learning_rate)
 
     # 3. Plot epoch duration
-    ax4 = Axis(f[5, 1]; xlabel = "epoch", ylabel = "duration [s]")
+    ax4 = Axis(f[5, 1]; xlabel = "Epoch", ylabel = "Duration [s]")
     linkxaxes!(ax1, ax4)
     lines!(ax4, epoch, duration)
 
@@ -123,7 +123,7 @@ function init_learning_curve_plot(epochs)
     ax2 = Axis(
         fig[4, 1];
         xlabel = "Epoch",
-        ylabel = "learning rate",
+        ylabel = "Learning Rate",
         ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
     )
     linkxaxes!(ax1, ax2)
