@@ -45,6 +45,9 @@ function get_common_settings()
         "--epochs"
             arg_type = Int
             required = true
+        "--schedule-file", "--schedule"
+            arg_type = String
+            required = true
         "--optimiser-rule", "--opt"
             arg_type = Symbol
             default = :Adam
