@@ -94,7 +94,7 @@ function plot_learning_curve(epoch, learning_rate, training_loss, validation_los
     ax3 = Axis(
         f[4, 1];
         ylabel = "Learning Rate",
-        ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
+        ytickformat = (labels -> [@sprintf "%.1e" l for l in labels]),
     )
     linkxaxes!(ax1, ax3)
     lines!(ax3, epoch, learning_rate)
@@ -124,7 +124,7 @@ function init_learning_curve_plot(epochs)
         fig[4, 1];
         xlabel = "Epoch",
         ylabel = "Learning Rate",
-        ytickformat = (labels -> [@sprintf "%.e" l for l in labels]),
+        ytickformat = (labels -> [@sprintf "%.1e" l for l in labels]),
     )
     linkxaxes!(ax1, ax2)
     xlims!(ax2, 0, epochs)
