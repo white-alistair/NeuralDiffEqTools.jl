@@ -16,6 +16,7 @@ function train!(
     time_limit = 23 * 60 * 60.0f0,
     verbose = false,
     show_plot = false,
+    n_manual_gc = 1,
 ) where {T<:AbstractFloat}
     @info "Beginning training..."
 
@@ -47,14 +48,16 @@ function train!(
             prob = remake(prob; u0, tspan)
 
             training_loss, gradients = Zygote.withgradient(θ) do θ
-                predicted_trajectory = predict(
-                    prob,
-                    θ;
-                    solver,
-                    saveat = times,
-                    reltol,
-                    abstol,
-                    sensealg = adjoint,
+                predicted_trajectory = Array(
+                    solve(
+                        prob,
+                        solver;
+                        p = θ,
+                        saveat = times,
+                        sensealg = adjoint,
+                        reltol,
+                        abstol,
+                    ),
                 )
                 return loss(predicted_trajectory, target_trajectory)
             end
