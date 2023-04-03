@@ -106,6 +106,9 @@ function train!(
             break
         end
 
+        for _ in 1:n_manual_gc
+            GC.gc(true)  # Manually call the GC a few times to (hopefully) avoid OOM errors
+        end
         flush(stderr)  # So we can watch log files on the cluster
     end
     training_duration = time() - training_start_time
