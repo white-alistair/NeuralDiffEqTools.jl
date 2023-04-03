@@ -1,4 +1,4 @@
-function multiple_shooting(time_series::TimeSeries, step::Int, shuffle = true)
+function multiple_shooting(time_series::TimeSeries, step::Int, shuffle = false)
     (; times, trajectory) = time_series
     start_indexes = collect(1:step:length(time_series)-step)
     if shuffle
