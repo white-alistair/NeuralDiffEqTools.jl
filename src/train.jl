@@ -8,7 +8,7 @@ function train!(
     loss::Function = MSE,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
-        autojacvec = ReverseDiffVJP(true),
+        autojacvec = ZygoteVJP(),
     ),
     reltol::T = 1.0f-6,
     abstol::T = 1.0f-6,
