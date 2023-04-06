@@ -1,7 +1,7 @@
 function train!(
     θ::AbstractVector{T},
     prob::SciMLBase.AbstractDEProblem,
-    data::Data{T},
+    (; train_data, val_data, test_data)::Data{T},
     epochs::Int,
     optimiser::Optimisers.AbstractRule,
     scheduler::ParameterSchedulers.AbstractSchedule;
@@ -19,8 +19,6 @@ function train!(
     n_manual_gc = 1,
 ) where {T<:AbstractFloat}
     @info "Beginning training..."
-
-    (; train_data, val_data, test_data) = data
 
     # Initial setup
     opt_state = Optimisers.setup(optimiser, θ)
@@ -109,6 +107,7 @@ function train!(
         for _ in 1:n_manual_gc
             GC.gc(true)  # Manually call the GC a few times to (hopefully) avoid OOM errors
         end
+        
         flush(stderr)  # So we can watch log files on the cluster
     end
     training_duration = time() - training_start_time
