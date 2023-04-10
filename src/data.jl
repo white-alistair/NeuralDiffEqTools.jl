@@ -11,3 +11,14 @@ end
 function Data{T}(train_data, val_data) where {T}
     return Data{T}(train_data, val_data, [])
 end
+
+function Data{T}(
+    time_series::TimeSeries{T};
+    steps::Int,
+    split_at::Tuple,
+    shuffle = false,
+) where {T}
+    data_ms = multiple_shooting(time_series, steps)
+    data_split = MLUtils.splitobs(data_ms; at = split_at, shuffle)
+    return Data{T}(data_split...)
+end
