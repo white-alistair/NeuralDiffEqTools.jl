@@ -104,8 +104,10 @@ function train!(
             break
         end
 
+        # Manually call the GC a few times to (hopefully) avoid OOM errors
         for _ in 1:n_manual_gc
-            GC.gc(true)  # Manually call the GC a few times to (hopefully) avoid OOM errors
+            GC.gc(true)
+            ccall(:malloc_trim, Cvoid, (Cint,), 0)
         end
 
         flush(stderr)  # So we can watch log files on the cluster
