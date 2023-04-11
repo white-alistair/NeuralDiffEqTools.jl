@@ -60,9 +60,8 @@ function get_common_settings()
         "--time-limit", "--time"
             arg_type = Float32
             default = Inf32
-        "--n-manual-gc"
-            arg_type = Int
-            default = 0
+        "--manual-gc"
+            action = :store_true
 
         # Solver args
         "--reltol"
