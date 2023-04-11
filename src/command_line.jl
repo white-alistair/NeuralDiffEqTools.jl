@@ -79,7 +79,7 @@ function get_common_settings()
             default = :BacksolveAdjoint
         "--vjp"
             arg_type = Symbol
-            default = :ReverseDiffVJP
+            default = :ZygoteVJP
         "--checkpointing"
             action = :store_true
 
