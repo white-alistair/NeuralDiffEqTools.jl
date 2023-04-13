@@ -4,5 +4,10 @@ function get_optimiser(rule_type, hyperparameters)
     elseif rule_type == :AdamW
         rule = Optimisers.AdamW()
     end
-    return Optimisers.adjust(rule; hyperparameters...)
+    
+    if isempty(hyperparameters)
+        return rule
+    else
+        return Optimisers.adjust(rule; hyperparameters...)
+    end
 end
