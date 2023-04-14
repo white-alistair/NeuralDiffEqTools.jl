@@ -126,6 +126,8 @@ function init_learning_curve_plot(epochs)
         fig[4, 1];
         xlabel = "Epoch",
         ylabel = "Learning Rate",
+        yscale = log10,
+        yticks = LogTicks(IntegerTicks()),
         ytickformat = (labels -> [@sprintf "%.1e" l for l in labels]),
     )
     linkxaxes!(ax1, ax2)
