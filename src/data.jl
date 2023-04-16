@@ -15,7 +15,7 @@ end
 function Data{T}(
     time_series::TimeSeries{T};
     steps::Int,
-    split_at::Tuple,
+    split_at,
     shuffle = false,
 ) where {T}
     data_ms = multiple_shooting(time_series, steps)
