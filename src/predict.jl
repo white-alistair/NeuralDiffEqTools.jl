@@ -8,5 +8,6 @@ function predict(
     maxiters = 100_000,
     sensealg = nothing,
 )
-    return Array(solve(prob, solver; p = θ, saveat, reltol, abstol, maxiters, sensealg))
+    sol = solve(prob, solver; p = θ, saveat, reltol, abstol, maxiters, sensealg)
+    return sol.t, Array(sol)
 end

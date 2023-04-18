@@ -4,7 +4,7 @@ function evaluate(prob, θ, data, loss, solver, reltol, abstol)
         tspan = (times[1], times[end])
         u0 = target_trajectory[:, 1]
         prob = remake(prob; u0, tspan)
-        predicted_trajectory = predict(
+        _, predicted_trajectory = predict(
             prob,
             θ;
             saveat = times,
