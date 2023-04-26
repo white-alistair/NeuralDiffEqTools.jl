@@ -10,10 +10,10 @@ function train!(
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ZygoteVJP(),
     ),
-    reltol::T = 1.0f-6,
-    abstol::T = 1.0f-6,
+    reltol = 1.0e-6,
+    abstol = 1.0e-6,
     patience = Inf,
-    time_limit = 23 * 60 * 60.0f0,
+    time_limit = 23 * 60 * 60,
     verbose = false,
     show_plot = false,
     manual_gc = false,
@@ -23,7 +23,7 @@ function train!(
     # Initial setup
     opt_state = Optimisers.setup(optimiser, θ)
     θ_min = copy(θ)
-    min_val_loss = Inf32
+    min_val_loss = typemax(T)
     min_val_epoch = 0
     early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
 
