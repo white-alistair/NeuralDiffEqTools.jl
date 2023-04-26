@@ -2,6 +2,10 @@ function eval_string(s)
     return eval(Meta.parse(s))
 end
 
+function ArgParse.parse_item(::Type{DataType}, type_name::AbstractString)
+    return eval_string(type_name)
+end
+
 function ArgParse.parse_item(::Type{Function}, function_name::AbstractString)
     return eval_string(function_name)
 end
@@ -23,6 +27,9 @@ function get_common_settings()
     #! format: off
     @add_arg_table common_settings begin
         # Experiment args
+        "--NF", "--precision"
+            arg_type = DataType
+            default = Float32
         "--job-id"
             arg_type = String
             default = get(ENV, "SLURM_JOB_ID", "1")
