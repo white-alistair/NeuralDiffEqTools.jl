@@ -3,7 +3,7 @@ function get_optimiser(rule_type, hyperparameters)
         rule = Optimisers.Adam()
     elseif rule_type == :AdamW
         rule = Optimisers.AdamW()
-    elseif rule_type = :Nesterov
+    elseif rule_type == :Nesterov
         rule = Optimisers.Nesterov()
     end
     
