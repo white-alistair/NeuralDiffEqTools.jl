@@ -5,7 +5,8 @@ function train!(
     epochs::Int,
     optimiser::Optimisers.AbstractRule,
     scheduler::ParameterSchedulers.AbstractSchedule;
-    loss::Function = MSE,
+    loss = MSE,
+    penalty = nothing,
     solver::SciMLBase.AbstractDEAlgorithm = Tsit5(),
     adjoint::SciMLSensitivity.AbstractAdjointSensitivityAlgorithm = BacksolveAdjoint(;
         autojacvec = ZygoteVJP(),
@@ -26,6 +27,16 @@ function train!(
     min_val_loss = typemax(T)
     min_val_epoch = 0
     early_stopping = Flux.early_stopping(loss -> loss, patience; init_score = min_val_loss)
+
+    # Set up the objective function, including a penalty term if provided
+    if !isnothing(penalty)
+        objective =
+            (predicted_trajectory, target_trajectory) ->
+                loss(predicted_trajectory, target_trajectory) +
+                penalty(predicted_trajectory, target_trajectory)
+    else
+        objective = loss
+    end
 
     learning_curve = LearningCurve{T}()
     if show_plot
@@ -57,7 +68,7 @@ function train!(
                         abstol,
                     ),
                 )
-                return loss(predicted_trajectory, target_trajectory)
+                return objective(predicted_trajectory, target_trajectory)
             end
 
             push!(training_losses, training_loss)
