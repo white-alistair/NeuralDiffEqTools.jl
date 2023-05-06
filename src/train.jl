@@ -125,8 +125,12 @@ function train!(
     end
     training_duration = time() - training_start_time
 
+    # Early stopping: select the parameters which minimise the training loss
+    if !isempty(val_data)
+        θ .= θ_min
+    end
+    
     # Evaluate trained model
-    θ .= θ_min
     test_loss = evaluate(prob, θ, test_data, loss, solver, reltol, abstol)
 
     @info "Training complete."
