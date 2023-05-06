@@ -29,7 +29,7 @@ function get_common_settings()
         # Experiment args
         "--NF", "--precision"
             arg_type = DataType
-            default = Float32
+            default = Float64
         "--job-id"
             arg_type = String
             default = get(ENV, "SLURM_JOB_ID", "1")
@@ -65,18 +65,18 @@ function get_common_settings()
             arg_type = Int
             default = typemax(Int)  # ~Inf
         "--time-limit", "--time"
-            arg_type = Float32
-            default = Inf32
+            arg_type = Float64
+            default = Inf64
         "--manual-gc"
             action = :store_true
 
         # Solver args
         "--reltol"
-            arg_type = Float32
-            default = 1f-6
+            arg_type = Float64
+            default = 1e-6
         "--abstol"
-            arg_type = Float32
-            default = 1f-6
+            arg_type = Float64
+            default = 1e-6
         "--solver"
             arg_type = OrdinaryDiffEqAlgorithm
             default = Tsit5()
