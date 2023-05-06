@@ -33,7 +33,7 @@ function train!(
         objective =
             (predicted_trajectory, target_trajectory) ->
                 loss(predicted_trajectory, target_trajectory) +
-                penalty(predicted_trajectory, target_trajectory)
+                penalty(predicted_trajectory)
     else
         objective = loss
     end
