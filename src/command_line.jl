@@ -27,7 +27,7 @@ function get_common_settings()
     #! format: off
     @add_arg_table common_settings begin
         # Experiment args
-        "--precision"
+        "--NF", "--precision"
             arg_type = DataType
             default = Float64
         "--job-id"
