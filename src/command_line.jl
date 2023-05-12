@@ -27,7 +27,7 @@ function get_common_settings()
     #! format: off
     @add_arg_table common_settings begin
         # Experiment args
-        "--NF", "--precision"
+        "--precision"
             arg_type = DataType
             default = Float64
         "--job-id"
@@ -61,6 +61,8 @@ function get_common_settings()
         "--optimiser-hyperparams", "--opt-params"
             arg_type = NamedTuple
             default = (;)
+        "--clip-norm"
+            arg_type = Float64
         "--patience"
             arg_type = Int
             default = typemax(Int)  # ~Inf
