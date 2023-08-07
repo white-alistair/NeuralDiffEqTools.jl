@@ -1,7 +1,7 @@
 function train!(
     θ::AbstractVector{T},
     prob::SciMLBase.AbstractDEProblem,
-    (; train_data, val_data, test_data)::Data{T},
+    (; train_data, valid_data, test_data),
     epochs::Int,
     optimiser::Optimisers.AbstractRule,
     scheduler::ParameterSchedulers.AbstractSchedule;
@@ -80,7 +80,7 @@ function train!(
             end
         end
 
-        val_loss = evaluate(prob, θ, val_data, loss, solver, reltol, abstol)
+        val_loss = evaluate(prob, θ, valid_data, loss, solver, reltol, abstol)
         epoch_duration = time() - epoch_start_time
 
         @info @sprintf "[epoch = %04i] Learning rate = %.1e" epoch learning_rate
@@ -126,7 +126,7 @@ function train!(
     training_duration = time() - training_start_time
 
     # Early stopping: select the parameters which minimise the training loss
-    if !isempty(val_data)
+    if !isempty(valid_data)
         θ .= θ_min
     end
     
