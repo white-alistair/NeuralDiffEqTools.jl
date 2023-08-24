@@ -1,7 +1,7 @@
 name = "NeuralDiffEqTools"
 uuid = "1abce475-062a-4062-8c22-09490a0380f9"
 authors = ["Alistair White <alistair@pik-potsdam.de>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"

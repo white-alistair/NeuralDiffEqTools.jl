@@ -1,13 +1,13 @@
-struct TimeSeries{T}
-    times::Vector{T}
-    trajectory::Matrix{T}
-    TimeSeries{T}(times, trajectory) where {T} =
+struct TimeSeries{T,V<:AbstractVector{T},M<:AbstractMatrix{T}}
+    times::V
+    trajectory::M
+    TimeSeries{T}(times::AbstractVector{T}, trajectory::AbstractMatrix{T}) where {T} =
         size(times)[end] != size(trajectory)[end] ?
         throw(DimensionMismatch("number of times and observations do not match")) :
-        new(times, trajectory)
+        new{T,typeof(times), typeof(trajectory)}(times, trajectory)
 end
 
-function TimeSeries(times::Vector{T}, trajectory::Matrix{T}) where {T}
+function TimeSeries(times::Vector{T}, trajectory::AbstractMatrix{T}) where {T}
     TimeSeries{T}(times, trajectory)
 end
 
