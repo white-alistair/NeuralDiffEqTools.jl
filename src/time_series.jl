@@ -7,7 +7,7 @@ struct TimeSeries{T,V<:AbstractVector{T},M<:AbstractMatrix{T}}
         new{T,typeof(times), typeof(trajectory)}(times, trajectory)
 end
 
-function TimeSeries(times::Vector{T}, trajectory::AbstractMatrix{T}) where {T}
+function TimeSeries(times::AbstractVector{T}, trajectory::AbstractMatrix{T}) where {T}
     TimeSeries{T}(times, trajectory)
 end
 
